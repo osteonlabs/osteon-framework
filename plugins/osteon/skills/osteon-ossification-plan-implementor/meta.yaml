@@ -1,0 +1,34 @@
+---
+name: osteon-ossification-plan-implementor
+tier: T0
+category: methodology
+gate: null
+owns: null
+chains_with:
+  - unit: osteon-ossification-plan-starter
+    relation: "owns the gate this unit refuses to start without, and the asking a stalled lane hands an unanswered decision back to"
+  - unit: osteon-ossification-planner-project-daily
+    relation: "owns the plan, its ledger and MINERALISE; this unit reports into that ledger and never decides what completion means"
+  - unit: osteon-single-session-ossification
+    relation: "owns the single-session mode's ten rules and the measured cost of the distributed alternative; this unit owns only how lanes are cut before subtasks are spawned"
+  - unit: osteon-capture
+    relation: "supplies the ledger a refused assertion or a stalled lane becomes compounding evidence through"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not treat a cannot-verify edge as a cannot-start edge when cutting lanes."
+    cause: "A constraint on when something can be PROVED is not a constraint on when it can be built. Conflating them serialises lanes that share no surface, and the resulting critical path is invented by the plan rather than found in the work. One plan stalled several concurrent lanes behind a decision none of them depended on."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null
+  - id: NK-2
+    type: do-not-reintroduce
+    text: "Do not cut lanes on subject matter. Cut them on exclusive shared surfaces."
+    cause: "Two lanes that both reach one state file, one protected branch or one migration chain cannot be applied independently however unrelated their subjects are. Several change requests were once planned against one shared surface that applies every pending change together."
+    src: null
+    expires: null
+  - id: NK-3
+    type: do-not-reintroduce
+    text: "Do not accept a subtask's own report of a fresh claim as the verdict, and do not let a subtask merge."
+    cause: "A subtask that reports its own work marks it done, and roughly a fifth of such claims do not survive a sibling whose only instruction is to refute them. A plan that overstates what is finished is worse than a stale one, because nobody re-checks a line already struck through."
+    src: null
+    expires: null

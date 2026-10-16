@@ -1,0 +1,26 @@
+---
+name: bone-curator
+tier: T0
+category: governance
+gate: null
+owns: null
+chains_with:
+  - unit: bone-adr
+    relation: "a locked or amended decision is this loop's commonest trigger; records nominate the artifacts they stale"
+  - unit: bone-contract
+    relation: "contract files are audited inputs and members of the watched set"
+  - unit: bone-git
+    relation: "the review path an applied changeset travels, as one commit carrying the record"
+  - unit: bone-review
+    relation: "reviews this loop's diff, and routes K3, K4 and K5 findings into it"
+  - unit: bone-standup
+    relation: "surfaces owed follow-ups and refuted proposals from curation records"
+  - unit: bone-onboard
+    relation: "reports an index above threshold to this loop and never curates itself"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not compute or report the index at file granularity, and do not restore a modification-time fallback."
+    cause: "File granularity and an mtime fallback are the two code paths that can print perfect health on a corpus that was never measured; both existed because they were cheaper than block extraction, and block extraction is now specified."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null

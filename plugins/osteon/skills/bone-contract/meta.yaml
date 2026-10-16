@@ -1,0 +1,22 @@
+---
+name: bone-contract
+tier: T0
+category: governance
+gate: null
+owns: null
+chains_with:
+  - unit: bone-adr
+    relation: "the record owns the rationale for the seam, this unit owns the wire"
+  - unit: bone-curator
+    relation: "contract files are audited inputs and members of the watched set; a registry row with no file is a finding"
+  - unit: bone-review
+    relation: "a wire change with no contract diff is a blocking finding (K2)"
+  - unit: bone-git
+    relation: "the same-wave rule is enforced in the review path, not by intent"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not carry the contract version in a prose bullet, and do not lead the registry index with a row-number column."
+    cause: "Both predate the index being generated; a row number is not data and an unparseable version cannot be asserted against the row."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null

@@ -1,0 +1,26 @@
+---
+name: bone-standup
+tier: T0
+category: governance
+gate: null
+owns: null
+chains_with:
+  - unit: bone-onboard
+    relation: "run first when restarting after a gap or handing over; brief never runs before it"
+  - unit: bone-git
+    relation: "what landed this session becomes the journal's Done lines"
+  - unit: bone-review
+    relation: "blockers and escaped defects surface here as risks"
+  - unit: bone-adr
+    relation: "a technical blind spot becomes a decision candidate there"
+  - unit: bone-contract
+    relation: "a seam question is routed there"
+  - unit: bone-curator
+    relation: "a knowledge claim that now looks wrong becomes a proposal there; it also reports decay health for status"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not select the newest decision records by identifier."
+    cause: "Amendments land on old numbers, so ordering by identifier hides the most recent change; sort by when it changed."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null

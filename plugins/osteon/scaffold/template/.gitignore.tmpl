@@ -1,0 +1,76 @@
+# {{BONE_REPO}} - ignore rules
+#
+# A BONE repository holds knowledge, and knowledge MUST be committable by construction
+# (CLAUDE.md invariant 6). This file exists to keep secret-shaped and machine-local files out,
+# NOT to hide knowledge. If a class of record cannot be committed, it is not knowledge-repo material
+# and it does not belong here at all.
+#
+# Deliberately NOT ignored: docs/**, metrics/**, CURATION.md, MANIFEST.yaml, .claude/skills/**,
+# .claude/hooks/**, .claude/settings.json. Ignoring any of those breaks decay detection, breaks a
+# teammate's clone, and destroys the audit trail.
+
+# --- Secret-shaped -----------------------------------------------------------
+.env
+.env.*
+*.env
+!*.env.example
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+*.ppk
+.netrc
+.npmrc
+credentials
+credentials.json
+service-account*.json
+*serviceaccount*.json
+*.token
+.token
+*-token
+secrets.yml
+secrets.yaml
+secrets.json
+.aws/
+.ssh/
+*.kubeconfig
+kubeconfig
+
+# --- Local agent state -------------------------------------------------------
+# Personal tooling, machine-specific hooks and permissions live here, never in settings.json.
+.claude/settings.local.json
+.claude/*.local.json
+.claude/local/
+
+# --- Scratch -----------------------------------------------------------------
+# Working space that is explicitly not knowledge. Anything here is disposable by definition.
+scratch/
+tmp/
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# --- Tooling and OS noise ----------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/

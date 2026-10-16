@@ -1,0 +1,45 @@
+# {{PROJECT}} glossary (L3)
+
+The ubiquitous language of {{PROJECT}}. **Use these names exactly. Do not introduce synonyms.**
+
+A term is in this glossary when it means something specific to {{PROJECT}} and getting it wrong
+produces wrong work. Ordinary English is not defined here.
+
+This file exists because the most expensive misunderstandings in a project are the ones where two
+people, or a person and an agent, use the same word for different things and neither notices.
+
+## How to use it
+
+- Code, API fields, database columns, issue titles, contracts and skills **MUST** use the canonical
+  term. Where an implementation already uses a different name, that name is recorded in the `Also
+  appears as` column and the drift is a work item, not a second definition.
+- A new term is added in the same change that introduces it. Coining a term without adding a row is
+  how a project ends up with three names for one concept.
+- A term that is retired **MUST NOT** be deleted. Mark it `retired` and name the replacement, so a
+  reader who finds the old word in old code can resolve it.
+- Every definition carries a provenance token. A term with no source is a term someone made up in a
+  meeting.
+
+## Terms
+
+| Term | Definition | Status | Also appears as | Source |
+|---|---|---|---|---|
+| <Term> | <one or two sentences; state what it is NOT if that is the common confusion> | current | `<field or symbol name in code>` | `[src: adr/00NN]` |
+
+Status vocabulary: `current` | `provisional` (in use, not yet settled) | `retired` (name the
+replacement in the definition).
+
+## Relationships
+
+How the core entities relate. Keep this small: it orients a reader, it does not replace the schema.
+
+```
+<Entity A> 1..n <Entity B>
+```
+
+## Terms deliberately NOT defined here
+
+Words that sound domain-specific but are not, and words owned by another glossary. Naming them stops
+a future contributor from adding a fourth definition of the same thing.
+
+- <term> - owned by <where>.

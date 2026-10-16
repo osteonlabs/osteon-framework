@@ -1,0 +1,7 @@
+{
+  "title": "OSTEON: governed, decay-checked project knowledge for agentic development",
+  "upload_type": "software",
+  "creators": [{ "name": "Gholinejad, Mahdi" }],
+  "license": "CC-BY-4.0",
+  "keywords": ["agentic development", "knowledge management", "architecture decision records", "context decay", "Claude Code"]
+}

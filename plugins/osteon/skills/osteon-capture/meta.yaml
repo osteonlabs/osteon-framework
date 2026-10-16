@@ -1,0 +1,38 @@
+---
+name: osteon-capture
+tier: T0
+category: instrumentation
+gate: null
+owns: null
+chains_with:
+  - unit: osteon-framework
+    relation: "owns the register a promoted observation lands in and the taxonomy that routes it; this unit supplies the run rows a register entry's runs field cites and the observations its principles rest on, and never edits the register itself"
+  - unit: osteon-research-unit
+    relation: "reads these streams as programme readings and decides what may leave the machine; this unit writes them de-identified so that decision is not blocked by the corpus rules"
+  - unit: osteon-single-session-ossification
+    relation: "a methodology whose execution writes a run row here; every unit that carries out a registered methodology writes its own row, and no unit exists whose only content is that append"
+  - unit: bone-curator
+    relation: "the only writer of the verdicts stream and the only applier of anything a nomination proposes; this unit hands over a rule-candidate finding and stops there, owning neither the approval protocol nor the curation record schema"
+  - unit: bone-curate-fast
+    relation: "takes the lesson that binds one project only, as a deferred item in that project's own curation record; the boundary is the subject, not the size of the change"
+  - unit: bone-review
+    relation: "a change proposed from a nomination is reviewed like any governed change; a reviewer who finds a register number with no locator routes it back here"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not add an apply step to this unit, and do not let it write the verdicts stream."
+    cause: "The safety argument for appending without approval is that these rows are a measurement: they record what happened and authorise nothing. A verdict makes a key inadmissible, so it is a control, and a control written without approval is governance by instrument, which is exactly what the approval protocol exists to prevent. An apply step would collapse the same distinction from the other side."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null
+  - id: NK-2
+    type: do-not-reintroduce
+    text: "Do not name a project, host, vendor or person in any row, and do not claim a row is verifiable by a third party."
+    cause: "A name makes the framework's own strengthening artifact fail the project-name check that keeps it releasable, so the artifact built to compound would be the one that could never be published. The honest consequence of de-identifying is that a row resolves only inside the context that wrote it, and claiming otherwise sells a property the artifact does not have."
+    src: null
+    expires: null
+  - id: NK-3
+    type: do-not-reintroduce
+    text: "Do not measure recurrence in occurrences, and do not reuse the promotion-candidate finding class for a nomination."
+    cause: "Ten occurrences inside one session is one context, and counting them would let an enthusiastic session manufacture its own corroboration in a file it alone writes. The promotion-candidate class is already defined in the specification for identical text at one tier: a homonym in a closed vocabulary means a reader cannot tell which object a finding names."
+    src: null
+    expires: null
