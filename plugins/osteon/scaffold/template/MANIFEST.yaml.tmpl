@@ -1,0 +1,427 @@
+# ============================================================================
+# MANIFEST.yaml - the machine-readable half of the L1 constitution.
+# SCHEMA: bone-spec {{BONE_VERSION}}, manifest schema_version "{{SCHEMA_VERSION}}".
+# Frozen; see SPEC Appendix A. This file is the single machine-readable contract.
+#
+# LIST SHAPE IS LOAD-BEARING. The hooks parse this file with awk and never require yq.
+#   - In `repos`, `alias` MUST be the first key of each item.
+#   - In `watched`, `knowledge_units`, `docs_registry` and `metrics.streams`,
+#     `path` MUST be the first key of each item.
+#   - Sub-keys of a list item MUST be indented deeper than the block key.
+#   - Top-level key order is normative: a scalar is resolved by first match in the file.
+# Reordering keys does not change the YAML. It does silently empty a list, and an empty
+# watch set reports a healthy zero.
+#
+# RULES.
+#   - Every key below is REQUIRED unless marked OPTIONAL. Delete nothing; empty a list with [].
+#   - The top-level key set is CLOSED. An unknown or out-of-order top-level key is a lint
+#     failure (L-30). A project fact that fits no declared key belongs in docs/state/ or
+#     docs/domain/, not here.
+#   - A TODO left in this file is a lint failure, not a placeholder. Replace every one before
+#     the first curation pass.
+#   - This file carries structure and identity. It MUST NOT carry decisions (those are ADRs)
+#     or dated observations (those are state records).
+#   - Anything secret-shaped is referenced by location and name only, never by value.
+# ============================================================================
+
+# --- Schema and version identity --------------------------------------------
+schema_version: "{{SCHEMA_VERSION}}"   # REQUIRED. string. The version of THIS file format.
+bone_version: "{{BONE_VERSION}}"       # REQUIRED. string. The bone-spec version this instance targets (B-7).
+conformance: "none"                    # REQUIRED. string, one of none | BONE-0 | BONE-1 | BONE-2 (B-15).
+                                       #   MUST stay "none" until a conformance check has actually run
+                                       #   and passed (B-17). A scaffold cannot claim BONE-0: check 0.1
+                                       #   requires a configured remote, which instantiation cannot
+                                       #   supply, so claiming it here would breach B-14 by construction.
+                                       #   Raise this by hand once the check is green.
+                                       #   Re-asserted in CI. Never claim a level the CI check does not test.
+                                       #   A scaffold has no CI and no curation history: it claims BONE-0.
+
+# --- Provenance of this file (OPTIONAL block) -------------------------------
+manifest:                              # OPTIONAL. Who produced this file and how.
+  generated: {{DATE}}                  #   date
+  generated_by: "bone-init.sh, bone-template {{BONE_VERSION}}"   #   string
+  derivation: "scaffolded from bone-template; not yet curated"   #   string.
+                                       #   NOT `method`: `method` is reserved for decay.method.
+
+# --- Project identity -------------------------------------------------------
+project:
+  id: {{PROJECT_SLUG}}                 # REQUIRED. lowercase, stable, kebab-case. Never changes.
+  name: "{{PROJECT}}"                  # REQUIRED. human-readable.
+  slug: {{PROJECT_SLUG}}               # REQUIRED. kebab-case, used in paths and metric records.
+  prefix: "{{PREFIX}}"                 # REQUIRED. T1 capability namespace, no trailing hyphen (B-63).
+  bone_repo: {{BONE_REPO}}             # REQUIRED. the name of THIS repository.
+  group_url: "{{GROUP_URL}}"           # REQUIRED. git host namespace.
+  created: {{DATE}}                    # REQUIRED. date this instance was scaffolded. Never changes.
+  status: active                       # REQUIRED. active | dormant | archived.
+  spelling: british                    # OPTIONAL. free-text orthography note.
+
+# --- Canonical paths --------------------------------------------------------
+# The T0 skills resolve every location through this block. Defaults shown are the canonical
+# defaults; an instance MAY move a directory, and MUST declare it here when it does.
+paths:
+  constitution: "CLAUDE.md"                # REQUIRED. default "CLAUDE.md" (B-21).
+  ledger: "docs/adr/"                      # REQUIRED. default "docs/adr/".
+  state: "docs/state/"                     # REQUIRED. default "docs/state/".
+  contracts: "docs/contracts/"             # REQUIRED. default "docs/contracts/".
+  domain: "docs/domain/"                   # REQUIRED. default "docs/domain/".
+  skills: ".claude/skills/"                # REQUIRED. default ".claude/skills/". The L4 capability dir.
+  capability_entry_filename: "SKILL.md"    # REQUIRED. default "SKILL.md" (B-62).
+  capability_meta_filename: "meta.yaml"    # REQUIRED. default "meta.yaml" (B-62, Appendix B.4).
+  curation: "docs/curation/"               # REQUIRED. default "docs/curation/".
+  curation_index: "CURATION.md"            # REQUIRED. default "CURATION.md". Generated (B-134).
+  metrics: "metrics/"                      # REQUIRED. default "metrics/".
+
+# --- Runtime integration ----------------------------------------------------
+hooks:
+  dir: ".claude/hooks"                               # REQUIRED.
+  session_start: ".claude/hooks/decay-check.sh"      # REQUIRED (B-153). MUST exist (B-177).
+
+# --- Knowledge tiers --------------------------------------------------------
+tiers:
+  T0:
+    location: "~/.claude/skills/"                    # REQUIRED. where T0 is installed.
+    source_repo: "TODO: path or URL of the bone-skills repository"   # REQUIRED.
+    install: symlink                                 # REQUIRED. symlink | copy. Default symlink.
+                                                     #   Install once per machine: see
+                                                     #   bone-skills/README.md, section "Installing T0".
+    version: "TODO"                                  # REQUIRED. bone-skills commit SHA, or "TODO"
+                                                     #   until bone-skills is under version control.
+    owns: "the methodology itself; anything true for more than one project"   # REQUIRED.
+  T1:
+    location: ".claude/skills/"                      # REQUIRED.
+    owns: "project facts and project procedures"     # REQUIRED.
+  T2:
+    location: "<repo>/CLAUDE.md"                     # REQUIRED. pattern only; the enumeration
+                                                     #   is repos[].tier2_context.
+    owns: "repo-local conventions only; MUST reference T1, never restate it"  # REQUIRED.
+
+# --- Repositories -----------------------------------------------------------
+#   alias          REQUIRED. MUST BE THE FIRST KEY. Provenance tokens resolve against it.
+#                  Never reuse an alias for a different repository.
+#   name           REQUIRED. repository name on the git host.
+#   url            REQUIRED. canonical remote. The system of record for this repo's code.
+#                  This is the key bone-git reads; there is no `remote` key.
+#   mirrors        REQUIRED (may be []). A mirror is never a source of truth.
+#   role           REQUIRED. knowledge | backend | frontend | ai | infra | design | planning | engine
+#   tier           REQUIRED. T1 for the BONE repo; T2 for a code repo carrying its own CLAUDE.md.
+#   tier2_context  REQUIRED (nullable). Repo-relative path of this repo's T2 document, or null.
+#                  This key DEFINES the governed set (B-8). null means the repo contributes no
+#                  governed file; it can still be a provenance target.
+#   default_branch REQUIRED. the protected branch.
+#   local_path     REQUIRED (nullable). Working copy on this machine. What lets BONE decay-watch a
+#                  file it does not own. Absent working copy => source UNAVAILABLE: excluded from
+#                  both sides of every index and reported separately.
+#   pinned_at      REQUIRED (nullable). The commit-ish that every UNPINNED code-ref into this repo
+#                  is understood to cite. Rewritten only by a curation event; it is L1, so it is on
+#                  the never-auto-apply list (B-129.1). null only when tier is T1.
+#   ci             REQUIRED. none | gitlab | github | both.
+#   status         REQUIRED. active | dormant | superseded | archived.
+#                  `superseded` MUST name the successor in `superseded_by`.
+#   superseded_by  OPTIONAL. alias of the successor repo.
+repos:
+  - alias: bone
+    name: {{BONE_REPO}}
+    url: "{{GROUP_URL}}/{{BONE_REPO}}"
+    mirrors: []
+    role: knowledge
+    tier: T1
+    tier2_context: null
+    default_branch: main
+    local_path: "TODO"
+    pinned_at: null
+    ci: none
+    status: active
+  # Add one item per repository in the estate. A repository absent from this list is invisible
+  # to tiering, to provenance resolution and to decay detection (B-179).
+  # - alias: TODO
+  #   name: TODO
+  #   url: "{{GROUP_URL}}/TODO"
+  #   mirrors: []
+  #   role: backend
+  #   tier: T2
+  #   tier2_context: "CLAUDE.md"
+  #   default_branch: main
+  #   local_path: "TODO"
+  #   pinned_at: "TODO"
+  #   ci: gitlab
+  #   status: active
+
+# --- Environments -----------------------------------------------------------
+#   id REQUIRED (first key) | url REQUIRED (nullable) | deploys_from REQUIRED (nullable)
+#   hosts OPTIONAL | notes OPTIONAL. No IP addresses, no credentials.
+environments: []
+  # - id: production
+  #   url: "TODO"
+  #   deploys_from: main
+  #   hosts: ""
+  #   notes: ""
+
+# --- Owners -----------------------------------------------------------------
+#   id REQUIRED (first key) | name REQUIRED | role REQUIRED | areas REQUIRED (may be []).
+#   MUST NOT carry contact details.
+owners:
+  - id: {{OWNER}}
+    name: "{{OWNER}}"
+    role: "accountable owner of {{BONE_REPO}}; approves curation changesets"
+    areas: ["bone"]
+
+# --- Roles ------------------------------------------------------------------
+# Read by bone-standup for blind-spot routing. Distinct from `owners`: an owner is a person,
+# a role is a class of accountability that a person fills.
+#   role REQUIRED (first key) | owns REQUIRED (list of fact classes) | route_via REQUIRED (owner id)
+roles: []
+  # - role: "product"
+  #   owns: ["loan periods", "overdue fines", "membership rules"]
+  #   route_via: {{OWNER}}
+
+# --- Systems of record ------------------------------------------------------
+# For each class of truth, the ONE authoritative place. A LIST, never a map.
+#   fact_class REQUIRED (first key). NOT `domain`: `domain` is reserved for paths.domain.
+#   location   REQUIRED. A repo-relative path, or "external: <name>" (B-11).
+#   adr        OPTIONAL. The ADR that decided it, or the open ADR that will.
+#   status     OPTIONAL. decided | UNDECIDED. UNDECIDED MUST carry an `adr`.
+systems_of_record:
+  - fact_class: "architecture decisions"
+    location: "docs/adr/"
+    adr: "adr/0000"
+  - fact_class: "live infrastructure facts"
+    location: "docs/state/"
+    adr: "adr/0000"
+  - fact_class: "module seam contracts"
+    location: "docs/contracts/"
+    adr: "adr/0000"
+  - fact_class: "ubiquitous language"
+    location: "docs/domain/GLOSSARY.md"
+    adr: "adr/0000"
+  - fact_class: "source code"
+    location: "TODO: the canonical git host group"
+  - fact_class: "work items"
+    location: "external: TODO"
+    status: UNDECIDED
+    adr: "TODO: open an ADR before any skill assumes a tracker"
+
+# --- Forge ------------------------------------------------------------------
+# Read by bone-git. Every value is a parameter of the skill, never a fact inside it.
+forge:
+  kind: gitlab                       # REQUIRED. gitlab | github | gitea | other
+  host: "TODO"                       # REQUIRED.
+  cli: none                          # REQUIRED. the CLI binary, or "none".
+  change_request_term: "merge request"   # REQUIRED. the noun this forge uses.
+
+# --- Tracker ----------------------------------------------------------------
+tracker:
+  system_of_record: UNDECIDED        # REQUIRED. forge | external | UNDECIDED.
+                                     #   UNDECIDED means: stop and route to bone-adr (B-11).
+  key_pattern: null                  # REQUIRED (nullable). e.g. "PROJ-<n>".
+  close_keyword: null                # REQUIRED (nullable). e.g. "Closes".
+
+# --- Branching --------------------------------------------------------------
+branching:
+  integration_branch: main                       # REQUIRED.
+  protected: ["main"]                            # REQUIRED (may be []).
+  branch_pattern: "<type>/<key>-<slug>"          # REQUIRED.
+
+# --- Commits ----------------------------------------------------------------
+commits:
+  subject_pattern: "<type>(<scope>): <summary>"    # REQUIRED.
+  types: [feat, fix, docs, refactor, test, chore]  # REQUIRED (may be []; empty means no type layer).
+  trailer: null                                    # REQUIRED (nullable). e.g. "Refs: <key>".
+
+# --- Change requests --------------------------------------------------------
+change_request:
+  template: null                     # REQUIRED (nullable). repo-relative path to the MR/PR template.
+
+# --- Rhythm -----------------------------------------------------------------
+# Read by bone-standup. Tracks are project-declared; no skill may invent or hardcode a set.
+rhythm:
+  journal_dir: null                  # REQUIRED (nullable). null disables the journal modes.
+  timezone: "TODO"                   # REQUIRED. what "today" means.
+  tracks: []                         # REQUIRED (may be []). items: tag REQUIRED (first key),
+                                     #   name REQUIRED, scope REQUIRED.
+  cadences: []                       # REQUIRED (may be []). items: name REQUIRED (first key),
+                                     #   when REQUIRED, audience REQUIRED, approver REQUIRED (owner id).
+
+# --- docs/ registry ---------------------------------------------------------
+# The admission rule for docs/. Every subdirectory of docs/ MUST have a row here before it exists.
+#   path REQUIRED (FIRST KEY) | owner REQUIRED (owner id)
+#   lifecycle REQUIRED: append-only | replace-on-verify | versioned | generated
+docs_registry:
+  - path: docs/adr
+    owner: {{OWNER}}
+    lifecycle: append-only
+  - path: docs/state
+    owner: {{OWNER}}
+    lifecycle: replace-on-verify
+  - path: docs/contracts
+    owner: {{OWNER}}
+    lifecycle: versioned
+  - path: docs/domain
+    owner: {{OWNER}}
+    lifecycle: replace-on-verify
+  - path: docs/curation
+    owner: {{OWNER}}
+    lifecycle: append-only
+
+# --- Gates ------------------------------------------------------------------
+# THE SINGLE ENUMERATION OF THE GATE SET (L5, B-155). Every other mention anywhere in the estate
+# references one of these ids and never re-lists them.
+#   id           REQUIRED (first key). stable, never renumbered.
+#   name         REQUIRED. one clause.
+#   unit         REQUIRED. the L4 capability unit holding the checklist. MUST exist (B-157).
+#   scope        REQUIRED. list of change classes that trigger it. ["*"] means every change.
+#   enforced_by  REQUIRED (may be []). CI job names that mechanically enforce the checkable subset.
+#                An empty list MUST be paired with enforcement: none.
+#   enforcement  REQUIRED. full | partial | none. `none` is a declared weakness, not enforcement.
+#   status       REQUIRED. declared | bound | enforced.
+#                  declared = row exists, no unit;   bound = unit exists, no CI;
+#                  enforced = unit exists AND every enforced_by job exists in CI.
+# There is no `blocking` key: a gate blocks by definition. A non-blocking check is a review
+# dimension, not a gate.
+# An empty gate set is honest. Declaring gates nobody runs converts a control into a checkbox.
+gates: []
+  # - id: {{PREFIX}}-secrets-hygiene
+  #   name: "Secrets hygiene"
+  #   unit: "{{PREFIX}}-secrets-gate"
+  #   scope: ["*"]
+  #   enforced_by: []
+  #   enforcement: none
+  #   status: declared
+
+# --- Watched set ------------------------------------------------------------
+# THE ONE DECLARATION OF WHAT IS WATCHED (B-114, B-140). The decay mechanism reads exactly this
+# list and hardcodes nothing. Adding a knowledge source without adding it here makes it invisible
+# to decay detection.
+#   path  REQUIRED. MUST BE THE FIRST KEY.
+#           internal: a repo-relative file or directory.
+#           external: "repo/<alias>:<repo-relative-path>", resolved through repos[].local_path.
+#   layer REQUIRED. L1 | L2 | L3 | L4 | T2 | code
+#   note  OPTIONAL.
+# Consumers are NOT listed here: they are derived by resolving [src: ...] tokens inside the
+# knowledge units, so the two can never disagree.
+# B-141 minimum membership: docs/adr/, docs/state/, docs/contracts/, docs/domain/, the
+# constitution, MANIFEST.yaml, AND at least one path in every repo whose tier2_context is non-null.
+watched:
+  - path: docs/adr
+    layer: L2
+    note: "a locked decision stales every unit that hedged about it"
+  - path: docs/state
+    layer: L2
+    note: "dated facts; these rot fastest"
+  - path: docs/contracts
+    layer: L3
+  - path: docs/domain
+    layer: L3
+  - path: CLAUDE.md
+    layer: L1
+  - path: MANIFEST.yaml
+    layer: L1
+  # EXTERNAL SOURCES. Uncomment and adapt one pair per code repository you declared above.
+  # These are what let this knowledge base notice that the code moved. An instance whose watched
+  # set contains no external source MUST report `external-CDI: null` and MUST NOT claim BONE-2.
+  # External entries are resolved through repos[].local_path and hashed exactly like internal
+  # ones; when no working copy exists they are counted `sources_unavailable` and excluded from
+  # both sides of every index, so they can neither fabricate decay nor hide it.
+  # - path: repo/TODO-alias:CLAUDE.md
+  #   layer: T2
+  #   note: "the T2 document of that repository"
+  # - path: repo/TODO-alias:path/to/the/module/this/knowledge/base/describes.py
+  #   layer: code
+  #   note: "a product-source path; this is the member that makes external-CDI computable"
+
+# --- Knowledge units --------------------------------------------------------
+# THE CONSUMER SET: the markdown artifacts that carry claims and can therefore decay.
+#   path REQUIRED. MUST BE THE FIRST KEY. A file, or a directory whose *.md files are all unit
+#        sources. Only markdown paths are legal here (block extraction is markdown-defined).
+# A path MAY appear in BOTH `watched` and `knowledge_units`: a state record both cites code and is
+# cited by skills. A unit's own file is excluded from its own src(u) set, so nothing decays itself.
+# Default when this list is empty: every *.md under paths.skills.
+knowledge_units:
+  - path: .claude/skills
+  - path: docs/domain
+  - path: docs/contracts
+  - path: docs/state
+  - path: docs/adr
+
+# --- Decay detection --------------------------------------------------------
+decay:
+  method: content-hash                       # REQUIRED. content-hash is the ONLY legal value
+                                             #   (B-139). mtime is forbidden, with no fallback.
+  baseline: metrics/curation-baseline.tsv    # REQUIRED. per-source SHA-256 at the last applied
+                                             #   curation. Written by the curation event (B-147),
+                                             #   never by the check. Committed.
+  unit_granularity: block                    # REQUIRED. `block` is the ONLY legal value.
+  events: metrics/decay-events.jsonl         # REQUIRED.
+  readings: metrics/cdi.jsonl                # REQUIRED.
+  never_blocks_session: true                 # REQUIRED. MUST be true (B-144).
+
+# --- Curation ---------------------------------------------------------------
+curation:
+  cdi_threshold: 0.10                        # REQUIRED. float (B-111.1).
+  max_interval_days: 30                      # REQUIRED. integer (B-111.5).
+
+# --- Metrics ----------------------------------------------------------------
+#   dir     REQUIRED.
+#   streams REQUIRED (may be []). items:
+#             path   REQUIRED (FIRST KEY)
+#             metric REQUIRED. the frozen metric id from EVALUATION.md section 2, or "several".
+#             status REQUIRED. live | planned. A `planned` stream is exempt from B-177.
+#             collected REQUIRED. one clause naming what writes it.
+# A stream file is created by the first event that produces a row. Nothing here is pre-created
+# with a header line: a header in a file plus a schema in metrics/README.md is two copies of one
+# fact, and the copy in the file is the one nobody updates.
+metrics:
+  dir: metrics/
+  streams:
+    - path: metrics/cdi.jsonl
+      metric: M1
+      status: live
+      collected: "cdi.sh, on every session start and every explicit run"
+    - path: metrics/decay-events.jsonl
+      metric: M1
+      status: live
+      collected: "decay-check.sh, on every fire, deduplicated per day"
+    - path: metrics/provenance.jsonl
+      metric: "several"
+      status: live
+      collected: "provenance-lint.sh --json (M7, M9, M10)"
+    - path: metrics/cold-start.csv
+      metric: M2
+      status: planned
+      collected: "operator, per cold agent session (M2 and M3)"
+    - path: metrics/gates.csv
+      metric: M5
+      status: planned
+      collected: "operator, per gate run and per escaped defect"
+    - path: metrics/decisions.csv
+      metric: M4
+      status: planned
+      collected: "curator, when an ADR reaches accepted"
+    - path: metrics/rework.csv
+      metric: M6
+      status: planned
+      collected: "operator, at triage"
+    - path: metrics/curation.csv
+      metric: M11
+      status: planned
+      collected: "curator, on every applied changeset"
+
+# --- Conventions ------------------------------------------------------------
+# Mechanically checkable parameters. A linter reads these rather than re-deriving them.
+conventions:
+  skill_prefix: "{{PREFIX}}-"                            # REQUIRED. project.prefix plus a hyphen.
+  skill_size_bytes: { target: 5120, hard: 10240 }        # REQUIRED (B-69).
+  description_chars: { min: 300, max: 600 }              # REQUIRED (B-67).
+  changeset_verbs: [ADD, UPDATE, REMOVE, MERGE, SPLIT]   # REQUIRED (B-118).
+  modal_markers: ["MUST", "MUST NOT", "SHOULD", "SHOULD NOT", "MAY"]   # REQUIRED.
+  gate_verdicts: [PASS, FAIL, NEEDS-INFO]                # REQUIRED (B-163).
+  adr_status: [proposed, accepted, superseded]           # REQUIRED (B-32).
+  adr_operative: [yes, no, partial, suspended]           # REQUIRED (Appendix B.1).
+
+# --- House style ------------------------------------------------------------
+# Declared lint rules with their file sets (B-12, B-12a, B-12b, L-19). Distinct from `conventions`:
+# a house style rule MUST carry the globs it applies over. Codepoints are written as U+XXXX and
+# never literally, so the rule does not contain its own violation.
+house_style:
+  - id: HS-1
+    rule: "no U+2014 EM DASH"
+    files: ["**/*.md", "**/*.sh", "**/*.yaml", "**/*.yml", "**/*.tsv", "**/*.json"]

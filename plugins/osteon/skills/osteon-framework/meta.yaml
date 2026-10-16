@@ -1,0 +1,34 @@
+---
+name: osteon-framework
+tier: T0
+category: foundational
+gate: null
+owns: null
+chains_with:
+  - unit: osteon-research-unit
+    relation: "supplies the readings and curation records a methodology's evidence cites; this unit registers the methodology, that unit keeps the evidence current and decides what may leave the machine"
+  - unit: bone-onboard
+    relation: "loads T0 first at any cold start; this unit is where the framework's own read order begins, the specification before any instance"
+  - unit: bone-curator
+    relation: "an inherit-check FAIL against an instance is handed to its curation loop as a proposal; this unit never applies a change inside an instance"
+  - unit: bone-adr
+    relation: "a specification revision that admits a methodology or a requirement is recorded as a decision; a deviation an instance keeps is a working assumption, never an edit"
+  - unit: bone-team
+    relation: "the team registry this unit checks for in the T0 source is that unit's to populate; this unit only reports its absence"
+  - unit: bone-user
+    relation: "owns the personal tier and its boundary; this unit's register never cites a personal path"
+  - unit: bone-review
+    relation: "a change to any T0 unit, this one included, is reviewed against the specification's own instance, not against a project's"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not restate a numbered requirement from the specification inside this unit, inside the methodology register, or inside any unit a methodology registers."
+    cause: "Two copies of one rule diverge on the first edit and nothing detects the divergence, because both still parse. The inheritance chain exists so that an instance cites a requirement by number and never holds a copy of it."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null
+  - id: NK-2
+    type: do-not-reintroduce
+    text: "Do not place a unit whose subject is the framework itself inside the reference distribution's capability library under its prefix."
+    cause: "The specification fixes that library's prefix for units that operate a BONE. A framework-subject unit filed there would be governed as a BONE-operating unit and would force a specification revision for a naming convenience. The laboratory exists so the distribution's naming rule stays intact."
+    src: null
+    expires: null

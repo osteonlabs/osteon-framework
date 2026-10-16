@@ -1,0 +1,62 @@
+---
+name: osteon-ossification-delivery-teaching
+tier: T0
+category: reporting
+gate: null
+owns: null
+chains_with:
+  - unit: osteon-ossification-planner-project-daily
+    relation: "owns the plan, its task states and its definitions of done; this unit reads them as the denominator of every progress figure and never changes one"
+  - unit: osteon-ossification-plan-starter
+    relation: "owns the gate where decisions are settled; a question it settled is reported here as the default in force, never as pending"
+  - unit: osteon-ossification-plan-implementor
+    relation: "owns what may merge and why a merge is not a completion; this unit grades landed work on the evidence ladder for readers and never carries it back into the plan"
+  - unit: osteon-single-session-ossification
+    relation: "owns delegation and refutation; the writing batches and the claim verifier here follow its rules and do not restate them"
+  - unit: osteon-capture
+    relation: "a report defect that reached a reader, or a check here that passed on an input that must fail, becomes an observation there"
+  - unit: bone-standup
+    relation: "owns the internal rhythm and the continuity journal; this unit owns the outward material a person outside the session reads"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not report open work as one count of things waiting on decisions."
+    cause: "A status once told its owner that hundreds of tasks waited on decisions, for a plan whose start gate had settled every decision and recorded a default for every question. The count lumped approvals of prepared acts, account-holder acts, checks of landed work, tasks held by a ruling and a pipeline outage under one word. Triaged by kind, almost none needed a decision. Every open task carries exactly one kind from a closed set, and the sum is asserted."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null
+  - id: NK-2
+    type: do-not-reintroduce
+    text: "Do not grade a change as live from its merge, its date, or a host that usually deploys on merge."
+    cause: "One surface's deploy pipeline stopped while its neighbours kept deploying on every merge, so work merged after the stop read as shipped by every signal except the host itself. Only an ancestry test of the merge commit against the commit the host runs, and a probe of the change, separate merged from deployed from seen."
+    src: null
+    expires: null
+  - id: NK-3
+    type: do-not-reintroduce
+    text: "Do not state a total, a scope or an absence from a truncated read."
+    cause: "A listing cut short by a first-lines filter shows only its head, so any total, scope or absence read from it understates the result, and a figure written into a record before the full listing is read stays wrong. Page every listing to its end and state the count it returned."
+    src: null
+    expires: null
+  - id: NK-4
+    type: do-not-reintroduce
+    text: "Do not trust a clean secret scan of a directory that carries an ignore file, whatever flags the scan was given."
+    cause: "A scanner honours an ignore file sitting inside the directory it scans, so a scan meant to rebuild that file reports clean for every finding the file already lists, reviewed or not. An explicitly empty ignore path does not switch this off: with a finding in the directory and its fingerprint in an ignore file beside it, the scan exits clean under an empty path, under a null device path and under no flag. Keep reviewed ignore lists outside every scanned directory, scan a copy without them, and review each finding by decoding it rather than by its shape."
+    src: null
+    expires: null
+  - id: NK-5
+    type: do-not-reintroduce
+    text: "Do not publish quotes copied from source records without scanning the copy."
+    cause: "Quotes copied from records with a narrow audience can carry credential-shaped values into a file with a wider one. Every file assembled from quotes is scanned before it is committed, rendered or handed to anyone."
+    src: null
+    expires: null
+  - id: NK-6
+    type: do-not-reintroduce
+    text: "Do not collect report records into a map keyed by a field that can be empty."
+    cause: "Several results parsed into a map keyed by a label that was empty for all of them came back as one, and that one looked plausible. Parse records one by one and assert the parsed count equals the listed count."
+    src: null
+    expires: null
+  - id: NK-7
+    type: do-not-reintroduce
+    text: "Do not let a data step that failed write the prose that summarises it."
+    cause: "A fold script crashed on one record, continued, and wrote handover text saying the work was already folded. Summary prose is written only after the data step exits zero and its counts reconcile."
+    src: null
+    expires: null

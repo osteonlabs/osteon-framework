@@ -1,0 +1,26 @@
+---
+name: bone-onboard
+tier: T0
+category: foundational
+gate: null
+owns: null
+chains_with:
+  - unit: bone-standup
+    relation: "brief runs after this unit on a restart, never before it"
+  - unit: bone-review
+    relation: "uses the same is-versus-ought ladder to derive the project's bar"
+  - unit: bone-adr
+    relation: "an open decision surfaced here, or a decision the code has suspended, is routed there"
+  - unit: bone-contract
+    relation: "read at step 7 when the task touches a seam"
+  - unit: bone-curator
+    relation: "an index above threshold, or a claim this run found false, is reported there; this unit never curates"
+  - unit: bone-git
+    relation: "runs after orientation, never before"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not read repository source code as the first move of a cold start."
+    cause: "Code answers how, expensively; L1 to L3 answer what and why, cheaply, and say which code is worth opening."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null

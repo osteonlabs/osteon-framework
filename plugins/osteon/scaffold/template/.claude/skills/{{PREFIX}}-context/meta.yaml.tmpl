@@ -1,0 +1,19 @@
+# Capability unit sidecar (L4). REQUIRED beside every SKILL.md; see
+# .claude/templates/META-TEMPLATE.md for the field-by-field schema.
+# This file is the ONLY place peer relations are declared. There is no `## Chains with`
+# section in SKILL.md: a second enumeration of the same graph is a drift hazard.
+name: {{PREFIX}}-context
+tier: T1
+category: foundational      # foundational | repo-developer | gate | analysis | toolchain | governance
+gate: null                  # or the gate id from MANIFEST.yaml gates[]
+owns: null                  # at most one durable state artifact path
+chains_with: []             # items: { unit: <name>, relation: "<what the edge means>" }
+                            # Fill this in as the suite grows. Every entry carries a relation:
+                            # an unlabelled edge is a "see also", not a graph.
+negative_knowledge: []      # items:
+                            #   id: NK-1
+                            #   type: do-not-reintroduce   # do-not-reintroduce | retraction | historical-note
+                            #   text: "<the thing that MUST NOT come back>"
+                            #   cause: "<why it was removed>"
+                            #   src: "adr/00NN"
+                            #   expires: null              # REQUIRED non-null for type retraction

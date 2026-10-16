@@ -1,0 +1,49 @@
+# Curation log - {{PROJECT}}
+
+<!-- GENERATED FILE. Do not hand-edit. Regenerate from the front matter of the records in
+     docs/curation/. A hand-edited index is a second copy of the records that will disagree
+     with them. -->
+
+Audit trail index for every change applied to this knowledge repository. The procedure is the T0
+skill `bone-curator`, run under the propose-then-ask protocol declared in `CLAUDE.md`.
+
+**This file is an index, not the record.** One curation event produces one file in
+`docs/curation/YYYY-MM-DD-<slug>.md` carrying the full front matter; this file carries one row per
+event so the history is scannable. The index is generated from the records, so the ordering cannot
+rot and the two cannot disagree.
+
+**This file is not a clock.** Its modification time means nothing. The decay clock is
+`metrics/curation-baseline.tsv`, which records the SHA-256 of every watched source at the moment of
+the last applied curation. Until that file is sealed, the index is `null` and the state is
+`uninitialised`; there is no mtime fallback and no substitute zero.
+
+## How to append (MUST)
+
+1. Write the record: `docs/curation/YYYY-MM-DD-<slug>.md`, from
+   `docs/curation/CURATION-RECORD-TEMPLATE.md`. Every front-matter field is required.
+2. Commit the record and the artifacts it describes **together, in one commit**. A commit that
+   touches governed knowledge and adds no record here is an unattested apply.
+3. Regenerate the table below from the records. Newest first.
+4. Rewrite `metrics/curation-baseline.tsv` (the hashes of every watched source at the moment of
+   curation) and append a row to `metrics/curation.csv`. The baseline write is what resets the decay
+   clock; skipping it leaves the next session reporting a stale index forever.
+
+## Rules
+
+- **MUST NOT** record an applied change that was not approved. A direct instruction from the owner is
+  a valid approval path, recorded as `approval: user-directed` with the instruction quoted verbatim
+  in `approval_instruction`, and it counts only when it names the target artifact and the verb.
+- **MUST** carry an `attestation` block on any event touching a never-auto-apply class.
+- **MUST** log refutations and explicitly-not-done items. A refuted proposal that is not logged gets
+  re-proposed next month.
+- **MUST** premise-check the audit's own findings before applying anything. An audit finding is a
+  claim, not a fact.
+- **MUST NOT** rewrite a past record once it is committed. A correction is a new record that names
+  what it corrects.
+- Change verbs are the closed set: ADD / UPDATE / REMOVE / MERGE / SPLIT.
+
+## Index
+
+| Date | Record | Theme | Verbs | CDI at trigger | Approval | Approver |
+|---|---|---|---|---|---|---|
+| {{DATE}} | [{{DATE}}-bone-instantiation](docs/curation/{{DATE}}-bone-instantiation.md) | BONE instance scaffolded | ADD | null | user-directed | {{OWNER}} |

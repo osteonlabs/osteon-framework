@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use OSTEON or its ideas, please cite it as below."
+title: "OSTEON: governed, decay-checked project knowledge for agentic development"
+type: software
+authors:
+  - family-names: Gholinejad
+    given-names: Mahdi
+version: 0.1.0
+date-released: 2026-10-17
+license: CC-BY-4.0
+keywords:
+  - agentic development
+  - knowledge management
+  - architecture decision records
+  - context decay
+  - Claude Code
+# Before the public release: add `repository-code`, then `doi` once Zenodo mints it,
+# and a `preferred-citation` block pointing at the preprint.

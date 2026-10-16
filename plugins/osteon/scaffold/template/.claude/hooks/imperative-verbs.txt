@@ -1,0 +1,199 @@
+# imperative-verbs.txt - the published base-form verb list used to approximate
+# imperative mood when classifying a markdown block as a CANDIDATE BLOCK.
+# BONE template version: 0.1.0
+#
+# WHY THIS FILE EXISTS AND WHY IT IS DATA, NOT CODE
+#   SPEC D-C.3 defines `units_total` as the count of CANDIDATE BLOCKS: a block
+#   containing at least one declarative sentence, not inside a fenced block, and
+#   not in imperative mood. Imperative mood is not mechanically decidable, so it
+#   is APPROXIMATED by a two-part rule, both parts required:
+#
+#     (1) the block's FIRST WORD is a modal marker (MUST, MUST NOT, SHOULD,
+#         SHOULD NOT, MAY, NEVER, ALWAYS, DO, DO NOT) or appears in this list;
+#     AND
+#     (2) the block carries NO finite-verb marker anywhere in its prose
+#         (` is `, ` are `, ` was `, ` were `, ` has `, ` have `, ` had `,
+#         ` does `, ` do `, ` did `, ` will `, ` can `, ` cannot `).
+#
+#   Part (2) is what keeps a noun that is also a verb from silently shrinking the
+#   denominator. "State records are the sole owner of live facts" opens with a
+#   listed word but carries ` are `, so it stays a candidate block and stays in
+#   the orphan-rate denominator. "Seal the baseline as the last step" carries no
+#   finite verb and drops out. The bias is deliberate and one-directional: when
+#   the rule is unsure it KEEPS the block, because an inflated denominator lowers
+#   coverage and a shrunken one flatters it, and a flattering index is the
+#   failure this rule exists to prevent.
+#
+#   The approximation is published rather than buried in a regex so that a reader
+#   can audit it, and so that its sampled false-positive rate can be measured and
+#   reported (SPEC Appendix E.4).
+#
+#   A procedure step ("Run the audit", "Seal the baseline") is an instruction,
+#   not a claim about the world, so it cannot be stale and must not sit in the
+#   orphan-rate denominator. A declarative sentence ("The loan period is 14
+#   days") is a claim and must.
+#
+# FORMAT
+#   One lowercase base-form verb per line. `#` comments and blank lines ignored.
+#   Matching is case-insensitive and applies ONLY to a block's first word.
+#
+# KNOWN COST OF THIS LIST
+#   Entries are chosen for how often they OPEN AN INSTRUCTION in a knowledge
+#   corpus, not for completeness of English. Part (2) of the rule above absorbs
+#   most of the noun/verb collisions; what survives is an instruction with no
+#   finite verb that happens to be a claim, and a claim with no finite verb that
+#   happens to open with a listed word. Both are rare and both are visible to a
+#   sampled audit.
+#
+# IF THIS FILE IS ABSENT
+#   The rule degrades to part (1) with modal markers only. It does not fail and it
+#   does not guess: cdi.sh reports "imperative_list":"absent" in every record it
+#   emits, so a series measured without the list is distinguishable from one
+#   measured with it.
+
+add
+append
+ask
+assert
+assign
+attach
+avoid
+bind
+block
+build
+call
+check
+choose
+cite
+commit
+compare
+compute
+confirm
+consider
+copy
+create
+declare
+define
+delete
+deploy
+describe
+diff
+disable
+document
+drop
+edit
+emit
+enable
+ensure
+enumerate
+escalate
+exclude
+exit
+expect
+explain
+extract
+fetch
+filter
+fix
+flag
+follow
+generate
+grep
+hash
+hold
+ignore
+include
+insert
+inspect
+install
+invoke
+keep
+land
+leave
+list
+load
+measure
+merge
+migrate
+move
+name
+normalise
+normalize
+open
+parse
+pass
+patch
+pick
+populate
+prefer
+prepend
+print
+prioritise
+prioritize
+prove
+publish
+pull
+push
+quote
+raise
+read
+rebase
+record
+refactor
+regenerate
+reject
+remove
+rename
+render
+repeat
+replace
+report
+require
+resolve
+retry
+return
+review
+rewrite
+route
+run
+save
+scaffold
+scan
+schedule
+seal
+search
+see
+select
+send
+set
+ship
+show
+sign
+skip
+sort
+split
+start
+state
+stop
+store
+strip
+surface
+switch
+tag
+tell
+test
+touch
+track
+treat
+trim
+update
+use
+validate
+verify
+wait
+walk
+watch
+wire
+withdraw
+wrap
+write

@@ -1,0 +1,28 @@
+---
+name: osteon-single-session-ossification
+tier: T0
+category: methodology
+gate: null
+owns: null
+chains_with:
+  - unit: osteon-framework
+    relation: "registers this methodology and holds the multi-session variant it is a mode of; this unit carries the executable rules, that unit carries the name, the vocabulary and the acceptance debt"
+  - unit: osteon-capture
+    relation: "supplies the observation rows and the run row this unit's evidence rests on; a rule here that no admissible observation supports is proposed practice, not a measured one"
+  - unit: bone-git
+    relation: "owns branch, commit and change-request mechanics for every branch an osteoblast pushes; this unit owns only who may merge one"
+  - unit: bone-review
+    relation: "owns judging a diff against the project's bar; this unit owns that the judging is done by the center and never by the agent that wrote the diff"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not let a delegated agent open or merge its own change request, and do not accept its own report of a fresh claim as the verdict."
+    cause: "An agent that reports its own work marks it done, and a plan that overstates what is finished is worse than one that is stale because nobody re-checks a struck-through line. Refutation by a different agent is what converts a report into a verdict, and the center is the only writer that can hold that line."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null
+  - id: NK-2
+    type: do-not-reintroduce
+    text: "Do not judge a gate by the text it prints without also judging it by its exit code, and do not adopt a gate without an input that must make it fail."
+    cause: "A gate that greps its own output for a failure count cannot see a failure that prints no count, so it certifies everything it does not understand. Gate tooling is code and carries the same defects as the code it gates."
+    src: null
+    expires: null

@@ -1,0 +1,72 @@
+---
+name: {{PREFIX}}-context
+description: Canonical project facts for {{PROJECT}} - what the systems are, which repository owns what, where each environment lives, who decides what, and which questions are still open. Use when asked what a component is, where something lives, which repo to change, who owns an area, or whether a question is settled. Load first in every {{PROJECT}} session, before any other {{PREFIX}}- skill. NOT for procedures (the task-specific {{PREFIX}}- skill owns those) or methodology rules (CLAUDE.md and bone-spec own those).
+---
+
+# {{PROJECT}} context
+
+The fact hub for {{PROJECT}}. Load this before any other `{{PREFIX}}-` skill.
+
+> **This file states facts, not procedures, and it never contradicts an accepted ADR or a current
+> state record. Where it disagrees with one, the ADR or the state record is correct and this file is
+> a defect.**
+
+<!--
+SCAFFOLD. Every section below is empty by design. Fill them from verified sources only: an ADR, a
+dated state record, or a first-hand check you then write into docs/state/. Do NOT fill this file from
+memory, from a README, or from a plan document; those are the artifacts most likely to be stale, and
+a fact copied from one of them arrives here with no provenance and no date.
+
+SIZE: 5 KB target, 10 KB hard cap. This file is loaded by nearly every session, so its cost is paid
+constantly. When it grows, extract to references/ rather than trimming the facts.
+
+DUPLICATION: this file REFERENCES the layers, it does not restate them. It carries pointers to ADRs,
+contracts and state records; it does not summarise their content, because a summary is a second copy
+that will drift from the first.
+-->
+
+## What {{PROJECT}} is
+
+<One paragraph. What the product does and for whom. Provenance token required.>
+
+## Systems in one screen
+
+| System | Role | Repository | Notes |
+|---|---|---|---|
+| <system> | <what it does> | `<alias from MANIFEST.yaml: repos>` | <one line> |
+
+## Where things live
+
+- Repositories, environments, owners and gates: `MANIFEST.yaml`. **Not restated here.**
+- Why a choice was made: `docs/adr/`.
+- What is true today: `docs/state/`. Every fact there is dated; every fact here that is not dated
+  came from there and MUST cite it.
+- Seam contracts: `docs/contracts/`.
+- The ubiquitous language: `docs/domain/GLOSSARY.md`.
+
+## Open questions
+
+Questions that are live. An agent that needs one of these answered **MUST** stop and ask; it MUST NOT
+pick the plausible option and proceed.
+
+The authoritative list is `docs/adr/README.md`. This section names only the ones that block routine
+work, and links to that table.
+
+| Question | Blocks | Owner |
+|---|---|---|
+| <question> | <what cannot proceed> | <owner id> |
+
+## Routing
+
+What this agent cannot decide, and who decides it.
+
+| Class of question | Decided by |
+|---|---|
+| <class> | <owner id> |
+
+## References
+
+- `references/<file>.md` - <what is inside>. Read it before <action>: <what goes wrong otherwise>.
+
+<!-- Peer relations live in `meta.yaml` beside this file, under `chains_with`, and nowhere else.
+     Fill that list in as the suite grows. -->

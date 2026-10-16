@@ -1,0 +1,22 @@
+# Copyable skeleton for a capability unit sidecar. Copy next to the new SKILL.md as `meta.yaml`.
+# The schema is documented once, in META-TEMPLATE.md. Delete these comments before committing.
+# Plain YAML mapping: no `---` document markers.
+name: {{PREFIX}}-<thing>
+tier: T1
+category: repo-developer    # foundational | repo-developer | gate | analysis | toolchain | governance
+gate: null                  # for a GATE unit: the gate id from MANIFEST.yaml gates[], and this
+                            # file's `category` is `gate`. Otherwise null.
+owns: null                  # at most one durable state artifact path (the skill is the
+                            # instructions; that file is the state). null when it owns none.
+chains_with:
+  - unit: {{PREFIX}}-context
+    relation: "load first"
+  - unit: {{PREFIX}}-<peer>
+    relation: "<what the edge means; 'see also' is not a relation>"
+negative_knowledge: []
+  # - id: NK-1
+  #   type: do-not-reintroduce      # do-not-reintroduce | retraction | historical-note
+  #   text: "<the thing that MUST NOT come back>"
+  #   cause: "<why it was removed>"
+  #   src: "adr/00NN"
+  #   expires: null                 # REQUIRED non-null for type retraction

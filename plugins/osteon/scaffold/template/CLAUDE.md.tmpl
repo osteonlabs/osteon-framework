@@ -1,0 +1,127 @@
+# {{PROJECT}} knowledge repository
+
+L1 constitution of the {{PROJECT}} BONE instance (`{{BONE_REPO}}`). Loaded at every session start;
+the only file that may be assumed to be in context.
+
+It carries rules, not facts. Every fact lives in a layer below and this file points at it.
+
+BONE spec {{BONE_VERSION}} . instantiated {{DATE}} . owner {{OWNER}}
+
+## Load order (MUST)
+
+1. This file.
+2. `MANIFEST.yaml` - the machine index of repos, environments, owners, gates and watched sources.
+3. `.claude/skills/{{PREFIX}}-context` - the project fact hub.
+4. Only then, the skill the task calls for.
+
+## The layers
+
+| Layer | Location | Owns |
+|---|---|---|
+| L1 Constitution | `CLAUDE.md`, `MANIFEST.yaml` | the rules; the machine index |
+| L2 Decision ledger | `docs/adr/` | why a choice was made, and the rejected paths |
+| L2 Live state | `docs/state/` | what is true today, dated, with a method |
+| L3 Contract registry | `docs/contracts/` | every module seam, semver'd |
+| L3 Domain | `docs/domain/` | the ubiquitous language |
+| L4 Capability library | `.claude/skills/` | executable procedural knowledge |
+| L5 Gate set | the subset of L4 in `MANIFEST.yaml: gates` | pre-merge verification |
+| X Curation loop | `.claude/hooks/`, `CURATION.md`, `docs/curation/` | decay detection and the audit trail |
+
+## Invariants
+
+Changing one takes an ADR and the owner's sign-off.
+
+1. **One fact, one tier.** A fact lives at the narrowest tier that fully owns it. T0 is the org tier
+   (`~/.claude/skills/`), T1 this repository, T2 a code repo's own `CLAUDE.md`. Lower tiers
+   reference, never copy. Tie-breaker: **co-locate by change cadence, not by topic.** If it changes
+   when a token rotates it belongs with the mechanics; if it changes when the process changes it
+   belongs with the policy.
+2. **A normative rule is stated once.** Every other mention is a reference. A hard rule copied into a
+   second file is a drift hazard, not reinforcement.
+3. **No claim without provenance.** Every non-obvious claim carries a resolvable token (below). An
+   orphan claim is a lint failure, not a style note.
+4. **Propose, then ask, then apply.** No agent mutates this repository's knowledge without per-item
+   human approval, and every applied change is logged.
+5. **Append-only history.** ADRs are amended, never rewritten; the rejected path is the record. State
+   records are replaced on re-verification, with the prior version in git history, not in the file.
+6. **Committable by construction.** Anything that cannot be committed (secrets, personal contact
+   data, regulated content) is not knowledge-repo material. Knowledge MUST NOT be gitignored.
+7. **No normative claim depends on a target outside this repository.** A `[[wikilink]]` carries
+   supplementary depth or deliberately-external private data only.
+
+## Provenance tokens
+
+Cited inline, at the end of the sentence. `.claude/hooks/provenance-lint.sh` resolves every token;
+one that does not resolve is a lint failure.
+
+| Form | Means |
+|---|---|
+| `[src: adr/0012]`, `[src: adr/0012#am2]` | a decision record, or one of its amendments |
+| `[src: state/<slug>@YYYY-MM-DD]` | a dated live-state record |
+| `[src: contract/<slug>@X.Y.Z]` | a versioned seam contract |
+| `[src: domain/<slug>#<anchor>]` | a definition in `docs/domain/` |
+| `[src: repo/<alias>:<path>]`, `[src: repo/<alias>:<path>:<lines>]` | a code location; `<alias>` is a `MANIFEST.yaml: repos` alias |
+| `[verified: YYYY-MM-DD]` | a first-hand observation with no file to cite |
+
+These five `src:` productions are the closed set. The `repo/` prefix on a code reference is
+**required**; the bare `<alias>:<path>` form is retired and lints as a legacy spelling. A code
+reference with no `@commit-ish` resolves against that repository's `repos[].pinned_at`, which is
+declared **once** in `MANIFEST.yaml` rather than repeated in every token; advancing that pin is
+itself a curation act. Write `@<commit-ish>` in a token only for a claim about a historical state
+the pin no longer names.
+
+A `verified:` token anchors in time, not to a file, so it never joins the decay graph and **SHOULD**
+become a state record. Tokens containing `<`, `>` or `...` are grammar, not citations, and are
+ignored, so this table does not report itself as a defect.
+
+## Modal vocabulary
+
+Every normative line carries exactly one of **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**,
+**MAY**. An unmarked line is context and is not enforced as a rule.
+
+## Curation (always on)
+
+The procedure is the T0 skill `bone-curator` and is not restated here. There is no T1 wrapper: a
+thin wrapper would be a second name for one procedure, and a unit that is not project-specific may
+not sit in the project capability directory.
+
+- `.claude/hooks/decay-check.sh` reports the Context Decay Index with its coverage at session start.
+  **If it reports staleness, run the audit and propose changes before other work.** Also run it when
+  a decision locks, a contract version changes, or a state record is re-verified.
+- Changeset verbs are the closed set **ADD / UPDATE / REMOVE / MERGE / SPLIT**.
+- Propose, ask per item, apply approved only, log to `CURATION.md` plus a record in `docs/curation/`.
+  A direct instruction from the owner is a valid sign-off **only when it names the target artifact
+  and the verb**, and it MUST be quoted verbatim in the record. Refutations are logged too, so they
+  are not re-proposed.
+- **One event, one commit.** An applied curation lands as a single commit carrying both the changed
+  artifacts and its record. A commit that edits governed knowledge and adds no record in
+  `docs/curation/` is an unattested apply.
+- **No skill may contradict this file, an accepted ADR, or a current state record.**
+
+## Gates
+
+The gate set is enumerated **once**, in `MANIFEST.yaml: gates`; every other mention references a gate
+by id. A checklist absent from that list is not a gate.
+
+Verdicts are the closed set `PASS` / `FAIL` / `NEEDS-INFO`. Every item reports a verdict, a locator
+(`file:line` or resource id) and, on failure, a one-line remediation. **Any FAIL blocks the merge.**
+`NEEDS-INFO` blocks until resolved: it exists so an under-determined item cannot become a false pass.
+
+## Security
+
+**MUST NOT** write a secret value, personal contact data, private key or customer data into any file
+here; reference secrets by store and name. On finding a leak, **MUST** report rather than repair:
+state the location, do not reproduce the value, open a rotation item.
+
+## House style
+
+- No em-dash (U+2014) in **any** text file here, including shell scripts and YAML.
+- Status and verdicts live in table cells or front matter. Headings are stable identifiers and MUST
+  NOT carry mutable state.
+- Skill references use the backticked bare name (`` `{{PREFIX}}-context` ``). The `/name` form is
+  reserved for commands that exist.
+- This file MUST stay under 8 KB (roughly 2k tokens). It is loaded in full by every session, so its
+  size is a tax paid constantly. Anything longer is a pointer, not a constitution. Measure the
+  substituted file, not the template: the project name expands.
+
+The admission rule for new `docs/` subdirectories is stated once, in `MANIFEST.yaml: docs_registry`.

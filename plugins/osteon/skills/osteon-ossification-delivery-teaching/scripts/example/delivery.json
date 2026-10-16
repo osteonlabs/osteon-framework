@@ -1,0 +1,139 @@
+{
+  "schema": "osteon.delivery/1",
+  "kind": "delivery",
+  "title": "What changed this week, and where to test it",
+  "subtitle": "City library lending service, development environment",
+  "slug": "example-delivery",
+  "locale": "en-GB",
+  "prepared_for": {"client": "The library's service manager", "colleague": "The engineering team", "owner": "The delivery lead"},
+  "prepared_by": "The delivery team",
+  "signature": "The delivery team",
+  "as_of": {
+    "read_at": "2026-03-12T09:30:00Z",
+    "since": "2026-03-05",
+    "plan_ref": "plan at 5b6c7d8",
+    "sources": [
+      "Plan state at 5b6c7d8: 84 tasks",
+      "Forge: 10 change requests merged since 5 March, listing read to its end",
+      "Hosts: the catalogue website runs 4e5f6a7, the lending service runs 9c8d7e6"
+    ]
+  },
+  "editions": ["client", "colleague", "owner"],
+  "standfirst": "{{changes}} changes landed since 5 March. {{count state=seen-live,deployed}} can be tested today, {{count state=merged,needs-build,needs-apply}} become testable after a deploy, a build or an apply, and {{internal}} are internal. Of {{plan.total}} plan tasks, {{plan.done}} are done.",
+  "kpis": [
+    {"label": "Changes landed", "value": "{{changes}}", "note": "since 5 March", "source": "forge listing, read to its end"},
+    {"label": "Test today", "value": "{{count state=seen-live,deployed}}", "note": "on the development hosts", "source": "items graded on the evidence ladder"},
+    {"label": "Plan tasks done", "value": "{{plan.done}}/{{plan.total}}", "note": "{{plan.open}} open", "source": "plan state at 5b6c7d8"},
+    {"label": "Ours to finish now", "value": "{{kind.workable-now}}", "note": "nobody else needed", "source": "plan state at 5b6c7d8"}
+  ],
+  "read_first": [
+    "**The lending service's development host runs an earlier build.** Changes to the lending service merged after 9 March are listed under Coming next and become testable with the next deploy. The catalogue website deploys on every merge and is current."
+  ],
+  "areas": [
+    {"id": "catalogue", "name": "Catalogue website", "env": "Development", "url": "https://catalogue.example.test"},
+    {"id": "lending", "name": "Lending service", "env": "Development", "url": "https://lending.example.test"},
+    {"id": "app", "name": "Reader app", "env": "Needs a build", "url": ""},
+    {"id": "infra", "name": "Infrastructure", "env": "Applied separately", "url": ""}
+  ],
+  "items": [
+    {
+      "id": "catalogue-12", "area": "catalogue", "state": "seen-live",
+      "title": "Book pages show how many copies are on the shelf",
+      "engineering_title": "availability: show the on-shelf copy count per branch on the book page",
+      "what_changed": "Each book page now says how many copies are on the shelf at each branch. Before this, it only said whether the library owned the book.",
+      "why": "Readers can tell whether a trip to a branch is worth it before they set out, and branch staff answer fewer calls asking the same thing.",
+      "where": "Development, https://catalogue.example.test, then any book's page",
+      "steps": ["Open https://catalogue.example.test in a browser. You do not need to sign in.", "Search for any title and open its page.", "Read the Availability panel."],
+      "expect": "An Availability panel that lists each branch with the number of copies on its shelf, for example 2 on the shelf.",
+      "access": "none",
+      "evidence": "GET https://catalogue.example.test/books/1001 signed out returned 200 with an Availability panel listing three branches",
+      "links": [{"label": "#12", "url": "https://forge.example.test/org/catalogue/pull/12"}],
+      "task_ids": ["CAT-4"]
+    },
+    {
+      "id": "catalogue-15", "area": "catalogue", "state": "deployed",
+      "title": "Members can renew a loan from their account page",
+      "engineering_title": "loans: renew from the account page and the loans tab",
+      "what_changed": "A Renew button sits beside each loan on a member's account page. Before this, members could renew only at a branch desk.",
+      "why": "Members keep a book longer without contacting a branch, and desk staff spend less time on routine renewals.",
+      "where": "Development, https://catalogue.example.test, My account, then Loans",
+      "steps": [
+        "Sign in to https://catalogue.example.test as a test member with books on loan.",
+        "Open My account, then Loans.",
+        "Press Renew beside a loan and confirm.",
+        "Reload the page and check the new due date.",
+        "Press Renew on a loan that has reached its renewal limit; the page should refuse it."
+      ],
+      "expect": "After you confirm and reload, the loan shows a due date three weeks later. A loan at its renewal limit is refused, and the page says why before anything is sent.",
+      "access": "A test member sign-in with books on loan, one of them at its renewal limit",
+      "screen_note": "The Loans table on the account page, with a Renew button beside each loan.",
+      "evidence": "Catalogue build 4e5f6a7 contains the merge commit; the screen needs a sign-in, so it was not observed.",
+      "links": [{"label": "#15", "url": "https://forge.example.test/org/catalogue/pull/15"}],
+      "task_ids": ["CAT-9"]
+    },
+    {
+      "id": "lending-40", "area": "lending", "state": "merged",
+      "title": "Members can join the waiting list for a book that is out",
+      "what_changed": "A new route lets a signed-in member join the waiting list for a book whose copies are all on loan, and serves the list in the order members joined.",
+      "test_later": "Development, after the next lending service deploy",
+      "links": [{"label": "#40", "url": "https://forge.example.test/org/lending/pull/40"}],
+      "task_ids": ["LND-11"]
+    },
+    {
+      "id": "app-7", "area": "app", "state": "needs-build",
+      "title": "The reader app opens a book's page from its barcode",
+      "what_changed": "Pointing the phone's camera at the barcode on a book now opens that book's page in the app, with its shelf location at each branch.",
+      "test_later": "A development build of the reader app, once one exists",
+      "task_ids": ["APP-3"]
+    },
+    {
+      "id": "infra-3", "area": "infra", "state": "needs-apply",
+      "title": "Lending records are backed up every night",
+      "what_changed": "Defines a nightly backup of the lending records, kept for thirty days, so records lost to a mistake can be restored. It does not exist until applied.",
+      "task_ids": ["INF-2"]
+    },
+    {
+      "id": "lending-41", "area": "lending", "state": "internal",
+      "title": "Tests for the renewal limit",
+      "links": [{"label": "#41", "url": "https://forge.example.test/org/lending/pull/41"}]
+    }
+  ],
+  "internal_counts": {"lending": 3, "catalogue": 1},
+  "plan": {
+    "total": 84, "done": 51, "not_needed": 3, "open": 30,
+    "open_by_kind": [
+      {"kind": "workable-now", "count": 12},
+      {"kind": "needs-a-go", "count": 4, "note": "Each is prepared; one step, such as a deploy, runs on the owner's approval."},
+      {"kind": "account-act", "count": 5, "note": "The library's outgoing email account, and the catalogue's web address."},
+      {"kind": "person-check", "count": 6},
+      {"kind": "held-by-ruling", "count": 3, "note": "They complete when the new branch opens, as the owner ruled."}
+    ],
+    "by_area": [
+      {"name": "Catalogue website", "done": 14, "open": 7},
+      {"name": "Lending service", "done": 20, "open": 9},
+      {"name": "Reader app", "done": 10, "open": 9},
+      {"name": "Infrastructure", "done": 7, "open": 5}
+    ]
+  },
+  "defaults": ["A loan lasts three weeks, the plan's default, until a ruling changes it."],
+  "asks": [
+    {"ask": "Load the development catalogue with test members who have books on loan", "who": "The library's systems administrator", "why": "Signed-in screens on development cannot be tested until then", "blocks": "Confirming {{count state=deployed}} deployed change"}
+  ],
+  "acts_needing_go": [
+    {"act": "Deploy the lending service's main line to development", "effect": "Makes {{count state=merged}} merged change testable", "reversible": "Yes, by redeploying the previous build"}
+  ],
+  "risks": [
+    {"risk": "Development cannot send email yet", "effect": "Waiting-list messages on development go unsent, so they cannot be checked there", "mitigation": "Messages are written to a log the team reads; setting up the sender is one of the account acts", "client": false}
+  ],
+  "next": ["Deploy the lending service to development on the owner's go.", "Walk the deployed items signed in and grade them seen live or down."],
+  "glossary": [
+    {"term": "Development host", "meaning": "A copy of the service used for testing before release; its members and loans are not real."},
+    {"term": "Apply", "meaning": "The deliberate step that creates infrastructure defined in code."}
+  ],
+  "rules": {
+    "deny_terms": ["agent", "subagent", "worktree", "lane", "session log"],
+    "internal_id_pattern": "\\b(?:CAT|LND|APP|INF)-[0-9]+\\b",
+    "public_link_patterns": ["^https://catalogue\\.example\\.test", "^https://lending\\.example\\.test", "^https://forge\\.example\\.test/org/"],
+    "reviewed_secret_fingerprints": []
+  }
+}

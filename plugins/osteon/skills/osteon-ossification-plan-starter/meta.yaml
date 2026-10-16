@@ -1,0 +1,34 @@
+---
+name: osteon-ossification-plan-starter
+tier: T0
+category: methodology
+gate: G1-G10, the calcification gate
+owns: null
+chains_with:
+  - unit: osteon-ossification-planner-project-daily
+    relation: "owns the plan and the definition-of-done bar this gate checks at G5; this unit owns the checking and never the standard"
+  - unit: osteon-ossification-plan-implementor
+    relation: "owns everything after a passing gate; this unit hands over a calcified plan and a recorded verdict per condition"
+  - unit: osteon-framework
+    relation: "holds the Ossification methodology whose start this gates, and the register that says what that methodology still owes"
+  - unit: osteon-capture
+    relation: "supplies the ledger a refused condition becomes compounding evidence through; a condition refused and not recorded has measured nothing"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not start an ossification because its plan's author says it is ready. Run the gate and record a verdict per condition."
+    cause: "A plan's author is the worst-placed reader of it, because an omission has no text to notice. The transition from plan to work has historically been made by assertion, and the cost lands weeks later as work scheduled twice or serialised for no reason."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null
+  - id: NK-2
+    type: do-not-reintroduce
+    text: "Do not report that open questions exist and stop. Ask them, one decision per question, with options and their consequences."
+    cause: "A gate that converts a decision into a status line leaves the decision unmade and the plan blocked, while appearing to have done its job. Dozens of separate ask tasks once collapsed to one message that was drafted and never sent, and no task in the plan performed the sending."
+    src: null
+    expires: null
+  - id: NK-3
+    type: do-not-reintroduce
+    text: "Do not trust the gate checker's pass without running it against an input that must fail."
+    cause: "The checker is code with the same defects as the code it gates. One draft over-reported unfalsifiable definitions of done through a strict pattern while under-reporting duplicates by comparing ids rather than meaning."
+    src: null
+    expires: null

@@ -1,0 +1,18 @@
+---
+name: bone-review
+tier: T0
+category: analysis
+gate: null
+owns: null
+chains_with:
+  - unit: bone-onboard
+    relation: "establishes what is currently true before a bar can be derived"
+  - unit: bone-git
+    relation: "calls this per staged group and again before ready, and consumes the K block"
+  - unit: bone-adr
+    relation: "K1 amendments and unwritten-rule candidates are routed there"
+  - unit: bone-contract
+    relation: "K2 co-change findings are routed there"
+  - unit: bone-curator
+    relation: "K3, K4 and K5 become proposals there; this unit never edits the knowledge base"
+negative_knowledge: []

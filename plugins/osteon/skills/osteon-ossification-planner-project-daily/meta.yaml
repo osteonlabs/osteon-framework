@@ -1,0 +1,42 @@
+---
+name: osteon-ossification-planner-project-daily
+tier: T0
+category: methodology
+gate: null
+owns: null
+chains_with:
+  - unit: osteon-framework
+    relation: "registers this methodology and holds its name, vocabulary, principles and acceptance debt; this unit carries the executable actions"
+  - unit: osteon-ossification-plan-starter
+    relation: "owns the gate that decides whether a plan may start, and checks the definition-of-done bar this unit sets; this unit owns the standard, that unit owns the checking"
+  - unit: osteon-ossification-plan-implementor
+    relation: "owns cutting lanes and running the plan once it has started; this unit owns the ledger that run reports into"
+  - unit: osteon-single-session-ossification
+    relation: "owns who may merge and how work is delegated inside one session; this unit owns only that a merge is not yet a completion and what makes it one"
+  - unit: bone-git
+    relation: "owns branch, commit and change-request mechanics for the reversal's own change request; this unit owns only that the open and the close ride in one"
+  - unit: bone-standup
+    relation: "owns the session brief and debrief and the continuity journal; this unit owns the project's dated ledger in the BONE, which is a different artefact with a different home and a different lifetime"
+  - unit: bone-curator
+    relation: "owns adding the ossification folder to a BONE that lacks it, as a curation event with its own record; this unit owns only what goes inside it once it exists"
+  - unit: osteon-capture
+    relation: "supplies the observation rows a cavity count becomes evidence through; a close that counts cavities and records nothing has measured nothing"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not treat a merged change request as done because it merged. Walk its post-merge actions and see each one green first."
+    cause: "A merge moves code and walks no checklist. Configuration steps, deploys and verification steps declared in a change request body are discovered undone days later, by which time the person who could do them has moved on and the reader assumes a merged change request was finished."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null
+  - id: NK-2
+    type: do-not-reintroduce
+    text: "Do not open a day's plan while a question that day's work depends on is unanswered and unrouted."
+    cause: "Work built on an assumption the one person who could have corrected it was never asked for is work that has to be redone, and the cost is paid at the end of the day rather than the start."
+    src: null
+    expires: null
+  - id: NK-3
+    type: do-not-reintroduce
+    text: "Do not hold the cycle inside a code repository, and do not keep one cycle per repository."
+    cause: "A day's work crosses repositories and its post-merge actions cross back the other way. A cycle held in one repository can record only its own half, so the cross-repository half goes missing in exactly the place it matters, owned by neither side. The BONE is the only place that can see every repository at once."
+    src: null
+    expires: null

@@ -1,0 +1,26 @@
+---
+name: bone-git
+tier: T0
+category: toolchain
+gate: null
+owns: null
+chains_with:
+  - unit: bone-onboard
+    relation: "load first in an unfamiliar project; this unit runs after orientation, never before"
+  - unit: bone-review
+    relation: "called per staged group and again before ready; consumes its knowledge-impact block"
+  - unit: bone-adr
+    relation: "a missing delivery decision, or a merged change contradicting an accepted one, is routed there"
+  - unit: bone-contract
+    relation: "a wire change ships its contract in this wave"
+  - unit: bone-curator
+    relation: "a falsified claim is routed, never edited inline; an applied curation lands as one commit here"
+  - unit: bone-standup
+    relation: "what landed this session becomes the journal's Done lines"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not read a repository's canonical remote from a repos[].remote key."
+    cause: "The key was renamed to url when the manifest schema was frozen; the old name resolves to nothing and a skill reading it silently falls through to STOP."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null

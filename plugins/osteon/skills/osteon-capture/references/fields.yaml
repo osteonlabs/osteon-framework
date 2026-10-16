@@ -1,0 +1,219 @@
+---
+# The ONE enumeration of the ledger's fields. Every lint and every generator reads this file and
+# MUST NOT hold a field list of its own, not even a count: a count in a shell script is a second
+# enumeration that goes wrong silently on the day a field is added.
+#
+# A field with nothing to say is written `none`, never omitted. A variable-shape log cannot be
+# queried, which costs every ratio this unit produces.
+
+header:
+  schema: osteon.stream-header/1
+  note: Line 1 of every stream is a header object, not a row. It states the stream's class, its writer
+    and its reader, so a file that drifts out of its directory still says what it is. Every reader
+    MUST skip it; no row-shape check applies to it.
+  fields:
+  - schema
+  - stream
+  - class
+  - writer
+  - reader
+  - doc
+streams:
+  observations:
+    schema: osteon.observation/1
+    path: artifacts/observations.jsonl
+    class: framework-tier episodes about the way of working
+    writer: osteon-capture, step C1, no approval
+    fields:
+      schema:
+        why: a stream with no version cannot be migrated
+        read_by: every reader
+      at:
+        why: self-reported time. The corroborating row must predate the nominating session
+        read_by: branch R
+      id:
+        why: the handle a nomination and a verdict key to
+        read_by: nominations, verdicts, index
+      key:
+        why: the match handle, kebab-case, class plus subject
+        read_by: branch R, index, the ruling check
+      claim:
+        why: the sentence a human reads. A key alone is not evidence
+        read_by: the index's human column
+      methodology:
+        why: routes the nomination. none means framework-wide
+        read_by: routing, register
+      locator:
+        why: O1. A claim without one is unverifiable once the session is gone
+        read_by: admissibility
+      failure:
+        why: O2. Closed set below
+        read_by: admissibility
+      demonstration:
+        why: 'REQUIRED non-none when failure is latent-proven: the run showing the check pass on an
+          input that must fail'
+        read_by: admissibility
+      counterfactual:
+        why: O3. The specific act that would have differed
+        read_by: admissibility
+      disconfirmer:
+        why: O4. What would show this wrong
+        read_by: admissibility, refutation
+      instrument:
+        why: the check that passed when it should have failed, or none. A non-none value routes the
+          nomination to tooling rather than to a rule
+        read_by: routing
+      context_id:
+        why: 'first 12 hex of sha256 over the context root''s absolute path: recomputable by anyone
+          standing in the context, and by anyone outside it who can guess the path, so it keeps a name
+          out of the row without hiding the context from a guesser. NEVER a name'
+        read_by: branch R
+      session:
+        why: you cannot corroborate yourself
+        read_by: branch R
+      agent:
+        why: branch R's second independence axis. A model id, never a person
+        read_by: branch R
+    closed_sets:
+      failure:
+      - occurred
+      - blocked-before-publish
+      - latent-proven
+    absent_on_purpose:
+      day: derivable from at, and a derived field can disagree with its source
+      status: it changes, and this file is append-only, so the field would be a lie. Status is derived
+        in the index
+      cost: self-reported magnitude, barred from every promotion test and absent from the index. A
+        field written by every row and read by nothing is the disease this ledger was built to avoid
+  nominations:
+    schema: osteon.nomination/1
+    path: artifacts/nominations.jsonl
+    class: what was proposed, and which rows it rests on
+    writer: osteon-capture, step C2, no approval. A nomination authorises nothing and deauthorises
+      nothing
+    fields:
+      schema:
+        why: as above
+        read_by: every reader
+      at:
+        why: when it was proposed
+        read_by: index
+      id:
+        why: the handle a verdict may cite
+        read_by: verdicts
+      key:
+        why: the class being proposed
+        read_by: index, the ruling check
+      observations:
+        why: every row it rests on, so a human can check the independence claim this unit cannot enforce
+        read_by: the human ruling on it
+      branch:
+        why: which branch it passed. A ledger where I predominates means the irreversibility set is
+          being stretched
+        read_by: the unit's own self-check
+      destination:
+        why: which of C3's three artifacts it is proposed into
+        read_by: routing
+      rationale:
+        why: one line. Why the rule is worth its cost
+        read_by: the human ruling on it
+      context_id:
+        why: where it was raised
+        read_by: index
+      session:
+        why: who raised it
+        read_by: index
+    closed_sets:
+      branch:
+      - R
+      - I
+      destination:
+      - specification
+      - register-principle
+      - capability-unit
+  verdicts:
+    schema: osteon.verdict/1
+    path: artifacts/verdicts.jsonl
+    class: rulings. A CONTROL, not a measurement
+    writer: 'bone-curator ONLY, in the same commit as the curation record carrying the ruling. osteon-capture
+      MUST NOT write this stream: a verdict makes a key inadmissible, and an unapproved control is
+      governance by instrument'
+    fields:
+      schema:
+        why: as above
+        read_by: every reader
+      at:
+        why: when it was ruled
+        read_by: index, the decline re-nomination test
+      id:
+        why: the handle
+        read_by: index
+      observation:
+        why: the row ruled on, or the nomination's lead row
+        read_by: index
+      verdict:
+        why: closed set below
+        read_by: admissibility
+      reason:
+        why: why. A refusal that is not written down is paid for twice
+        read_by: the next session
+      reopen_condition:
+        why: REQUIRED, written none where the verdict is terminal
+        read_by: admissibility
+      landed_in:
+        why: 'the curation record or commit that carried the ruling, so a verdict is attestable rather
+          than self-asserted. Approver identity is NOT duplicated here: the curation record owns it'
+        read_by: attestation
+    closed_sets:
+      verdict:
+      - promoted
+      - refuted
+      - declined
+      - deferred
+  runs:
+    schema: osteon.run/1
+    path: artifacts/methodology-runs.jsonl
+    class: framework-tier events about the framework's own methodologies
+    writer: the session that executed the methodology, once, at step C4
+    fields:
+      schema:
+        why: as above
+        read_by: every reader
+      at:
+        why: when the run ended
+        read_by: register
+      id:
+        why: the id a register runs line cites
+        read_by: register, lint
+      methodology:
+        why: the register entry name, verbatim. The register is the one enumeration, and a name here
+          that does not resolve there is the lint to catch it
+        read_by: register, lint
+      unit:
+        why: the capability unit that carried it out, or none
+        read_by: register
+      verdict:
+        why: closed set below. A ledger that cannot record abandonment computes a success rate of
+          one by construction
+        read_by: register
+      context_id:
+        why: where it ran, and where its measure locators resolve
+        read_by: verification
+      session:
+        why: who ran it
+        read_by: verification
+      measures:
+        why: array of name, value and locator. EVERY number carries a locator, which is what makes
+          a register figure re-derivable instead of hand-typed
+        read_by: register, papers
+      discharges:
+        why: the owes items it claims, verbatim from the register entry
+        read_by: the acceptance rule
+      observations:
+        why: the rows the run produced, so failure modes are linked and not restated
+        read_by: index
+    closed_sets:
+      verdict:
+      - completed
+      - partial
+      - abandoned

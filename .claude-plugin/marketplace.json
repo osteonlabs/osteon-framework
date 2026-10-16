@@ -1,0 +1,15 @@
+{
+  "name": "osteon",
+  "owner": { "name": "OSTEON" },
+  "metadata": {
+    "description": "The OSTEON framework: governed, decay-checked project knowledge for agentic development."
+  },
+  "plugins": [
+    {
+      "name": "osteon",
+      "source": "./plugins/osteon",
+      "description": "OSTEON framework skills: BONE knowledge-base operation (decisions, contracts, curation, onboarding, review) and the ossification planning methodology.",
+      "version": "0.1.0"
+    }
+  ]
+}

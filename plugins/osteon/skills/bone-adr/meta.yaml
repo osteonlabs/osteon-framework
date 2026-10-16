@@ -1,0 +1,24 @@
+---
+name: bone-adr
+tier: T0
+category: governance
+gate: null
+owns: null
+chains_with:
+  - unit: bone-curator
+    relation: "a locked or amended record is its most common trigger; it reconciles everything the record stales"
+  - unit: bone-contract
+    relation: "a decision that changes a wire owes a contract version in the same wave"
+  - unit: bone-git
+    relation: "the branch and review path a record travels"
+  - unit: bone-review
+    relation: "a change contradicting an accepted record is a review finding, routed back here as an amendment"
+  - unit: bone-standup
+    relation: "open questions and owed follow-ups surface from the ledger"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not write the record header as a bullet list under the H1."
+    cause: "The bullet form was chosen for readability before anything read the header mechanically; the index generator, the lint set and the decay check all now parse it, and prose cannot be parsed."
+    src: null                       # T0 has no project ledger to cite; see bone-skills/README.md section 4
+    expires: null
