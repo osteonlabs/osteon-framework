@@ -1,7 +1,20 @@
 {
-  "title": "OSTEON: governed, decay-checked project knowledge for agentic development",
+  "title": "OSTEON: A Discipline for Superintelligent Software Engineering",
   "upload_type": "software",
-  "creators": [{ "name": "Gholinejad, Mohammad Mehdi", "orcid": "0009-0004-4192-9825" }],
+  "creators": [
+    {
+      "name": "Gholinejad, Mohammad Mehdi",
+      "orcid": "0009-0004-4192-9825"
+    }
+  ],
+  "description": "Superintelligent software engineering is the discipline of building and evolving software with agents whose capability exceeds that of human engineers, in which governance (gates, contracts, decisions and decay control) scales with capability. OSTEON is a discipline for it. Every project gets one governed knowledge repository, its BONE, holding the project's constitution, decisions, module contracts and the skills that operate it, with review gates, provenance and a session-start decay check. This release (0.1.0) is the OSTEON plugin for Claude Code: fifteen skills, the BONE scaffold and the decay check. Content is licensed under CC BY 4.0 and scripts under MIT.",
   "license": "CC-BY-4.0",
-  "keywords": ["agentic development", "knowledge management", "architecture decision records", "context decay", "Claude Code"]
+  "keywords": [
+    "superintelligent software engineering",
+    "agentic development",
+    "knowledge management",
+    "architecture decision records",
+    "context decay",
+    "Claude Code"
+  ]
 }
