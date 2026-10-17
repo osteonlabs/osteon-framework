@@ -4,7 +4,8 @@ title: "OSTEON: governed, decay-checked project knowledge for agentic developmen
 type: software
 authors:
   - family-names: Gholinejad
-    given-names: Mahdi
+    given-names: Mohammad Mehdi
+    orcid: "https://orcid.org/0009-0004-4192-9825"
 version: 0.1.0
 date-released: 2026-10-17
 license: CC-BY-4.0
@@ -14,5 +15,5 @@ keywords:
   - architecture decision records
   - context decay
   - Claude Code
-# Before the public release: add `repository-code`, then `doi` once Zenodo mints it,
-# and a `preferred-citation` block pointing at the preprint.
+doi: 10.5281/zenodo.23436020
+repository-code: "https://github.com/osteonlabs/osteon-framework"
