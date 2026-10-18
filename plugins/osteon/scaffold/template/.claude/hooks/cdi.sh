@@ -383,7 +383,7 @@ SOURCES_EXTERNAL=$(count "$TMP/w_ext.txt")
 SOURCES_CHANGED=$(count "$TMP/changed_paths.txt")
 SOURCES_UNABSORBED=$(count "$TMP/unabsorbed.txt")
 SOURCES_UNAVAILABLE=$(count "$TMP/unavailable.txt")
-UNRESOLVED_TOKENS=$(count "$TMP/unresolved.tsv")
+UNRESOLVED_CITES=$(count "$TMP/unresolved.tsv")
 STALE_CITATIONS=$(cat "$TMP/stale_citations.txt" 2>/dev/null || echo 0)
 IMPERATIVE_LIST=$( [ -n "$(bone_imperative_list)" ] && printf 'present' || printf 'absent' )
 
@@ -469,7 +469,7 @@ emit_json() {
         printf '"sources_changed":%s,' "$SOURCES_CHANGED"
         printf '"sources_unabsorbed":%s,' "$SOURCES_UNABSORBED"
         printf '"sources_unavailable":%s,' "$SOURCES_UNAVAILABLE"
-        printf '"unresolved_tokens":%s,' "$UNRESOLVED_TOKENS"
+        printf '"unresolved_tokens":%s,' "$UNRESOLVED_CITES"
         printf '"stale_citations":%s,' "$STALE_CITATIONS"
         printf '"changed_sources":'
         awk -F'\t' '
@@ -521,7 +521,7 @@ emit_kv() {
     echo "sources_changed=$SOURCES_CHANGED"
     echo "sources_unabsorbed=$SOURCES_UNABSORBED"
     echo "sources_unavailable=$SOURCES_UNAVAILABLE"
-    echo "unresolved_tokens=$UNRESOLVED_TOKENS"
+    echo "unresolved_tokens=$UNRESOLVED_CITES"
     echo "stale_citations=$STALE_CITATIONS"
     echo "baseline_sealed_at=${BASELINE_SEALED:-}"
     echo "note=${NOTE}"
