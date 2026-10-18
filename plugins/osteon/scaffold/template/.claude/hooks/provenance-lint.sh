@@ -417,16 +417,16 @@ P7=$(count "$TMP/p7.txt"); P8=$(count "$TMP/p8.txt")
 EXTU=$(sort -u "$TMP/extu.txt" 2>/dev/null | sed '/^$/d' | wc -l | tr -d ' ')
 COVERAGE=$(bone_pct "$UNITS_ANCHORED" "$UNITS_TOTAL")
 ORPHAN_RATE=$(bone_pct "$P3" "$UNITS_TOTAL")
-TOKENS_TOTAL=$(sort -u "$TMP/alltok.txt" 2>/dev/null | sed '/^$/d' | wc -l | tr -d ' ')
-TOKENS_RESOLVABLE=$(sort -u "$TMP/restok.txt" 2>/dev/null | sed '/^$/d' | wc -l | tr -d ' ')
-RESOLVABILITY=$(bone_pct "$TOKENS_RESOLVABLE" "$TOKENS_TOTAL")
+CITES_TOTAL=$(sort -u "$TMP/alltok.txt" 2>/dev/null | sed '/^$/d' | wc -l | tr -d ' ')
+CITES_RESOLVABLE=$(sort -u "$TMP/restok.txt" 2>/dev/null | sed '/^$/d' | wc -l | tr -d ' ')
+RESOLVABILITY=$(bone_pct "$CITES_RESOLVABLE" "$CITES_TOTAL")
 
 if [ "$JSON" -eq 1 ]; then
     printf '{"schema":"bone.provenance-lint/2","generated_at":"%s","project":"%s","unit_granularity":"block","unit_files":%s,"units_total":%s,"units_anchored":%s,"provenance_coverage":%s,"orphan_rate":%s,"docs_scanned":%s,"unresolved_src":%s,"unqualified_paths":%s,"dead_external_refs":%s,"unanchored_blocks":%s,"desc_mutable_fact":%s,"orphan_claims":%s,"state_no_verified_at":%s,"legacy_spelling":%s,"volatile_details":%s,"external_unverifiable":%s,"tokens_total":%s,"tokens_resolvable":%s,"provenance_resolvability":%s}\n' \
         "$(bone_now_utc)" "$(bone_json_escape "$BONE_PROJECT")" \
         "$UNIT_FILES" "$UNITS_TOTAL" "$UNITS_ANCHORED" "$COVERAGE" "$ORPHAN_RATE" "$DOCS_TOTAL" \
         "$P1" "$P1B" "$P2" "$P3" "$P4" "$P5" "$P6" "$P7" "$P8" "$EXTU" \
-        "$TOKENS_TOTAL" "$TOKENS_RESOLVABLE" "$RESOLVABILITY"
+        "$CITES_TOTAL" "$CITES_RESOLVABLE" "$RESOLVABILITY"
     exit_now=1
 else
     # Findings are grouped by file and capped at --limit per file. Twenty
@@ -456,7 +456,7 @@ else
     echo "  knowledge units       $UNITS_TOTAL candidate blocks in $UNIT_FILES files, $UNITS_ANCHORED anchored"
     echo "                        coverage $COVERAGE, orphan rate $ORPHAN_RATE"
     echo "  docs files            $DOCS_TOTAL scanned"
-    echo "  provenance tokens     $TOKENS_TOTAL distinct, $TOKENS_RESOLVABLE resolvable (M13 $RESOLVABILITY)"
+    echo "  provenance tokens     $CITES_TOTAL distinct, $CITES_RESOLVABLE resolvable (M13 $RESOLVABILITY)"
     echo ""
     echo "  P1 UNRESOLVED-SRC         $P1   (precision ~1.00)"
     echo "  P1b UNQUALIFIED-PATH      $P1B   (precision ~1.00, remediation: add the repo alias)"
