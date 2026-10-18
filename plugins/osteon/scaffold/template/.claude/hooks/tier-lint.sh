@@ -29,7 +29,7 @@
 #   cries wolf gets switched off, and a switched-off lint detects nothing.
 #
 # TIERS
-#   T0  ~/.claude/skills/<name>/**            the org methodology library
+#   T0  $BONE_T0_ROOT/<name>/**              the org methodology library (declared)
 #   T1  <bone>/.claude/skills/<name>/**       this project's facts
 #   T2  <repo>/<tier2_context>                repo-local convention, resolved
 #                                             through MANIFEST repos[] entries
@@ -98,14 +98,22 @@ trap 'rm -rf "$TMP"' EXIT INT TERM
 INV="$TMP/inv"
 : > "$INV"
 
-# T0: the installed org library. Symlinks are the documented install, so follow them.
-for d in "$HOME"/.claude/skills/*/; do
-	[ -d "$d" ] || continue
-	case $(basename "${d%/}") in
-	bone-*) find -L "${d%/}" -name '*.md' -type f 2>/dev/null |
-		while IFS= read -r f; do printf 'T0\t%s\n' "$f" >> "$INV"; done ;;
-	esac
-done
+# T0: the org methodology library. Its root is declared, never guessed: BONE_T0_ROOT names the
+# directory whose bone-* subfolders hold the library (the OSTEON plugin sets it to its own skills
+# directory). Unset, the T0 tier is skipped and the lint says so once, so a missing library reads
+# as "not checked" and never as "clean". Symlinks are a documented install, so follow them.
+T0_ROOT=${BONE_T0_ROOT:-${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills}}
+if [ -n "$T0_ROOT" ] && [ -d "$T0_ROOT" ]; then
+	for d in "$T0_ROOT"/*/; do
+		[ -d "$d" ] || continue
+		case $(basename "${d%/}") in
+		bone-*) find -L "${d%/}" -name '*.md' -type f 2>/dev/null |
+			while IFS= read -r f; do printf 'T0\t%s\n' "$f" >> "$INV"; done ;;
+		esac
+	done
+elif [ "$QUIET" = 0 ]; then
+	printf 'tier-lint: T0 not checked (set BONE_T0_ROOT to the methodology library)\n' >&2
+fi
 
 # T1: this project's capability library.
 if [ -d "$ROOT/.claude/skills" ]; then

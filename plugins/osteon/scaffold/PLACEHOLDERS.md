@@ -1,25 +1,25 @@
 # Placeholders
 
 **This file is the single source of truth for the substitution set.** `bone-init.sh` lints against it
-on every run: a `{{TOKEN}}` in `template/` that is not listed here fails, and a token listed here that
+on every run: a `{{PLACEHOLDER}}` in `template/` that is not listed here fails, and a placeholder listed here that
 appears nowhere in `template/` fails. The two cannot drift.
 
 ## Syntax
 
 | Form | Meaning | Who fills it |
 |---|---|---|
-| `{{TOKEN}}` | substituted by `bone-init.sh` at instantiation | the script |
+| `{{PLACEHOLDER}}` | substituted by `bone-init.sh` at instantiation | the script |
 | `<angle brackets>` | a field a human fills in when authoring a record from a template | the author |
 
 The two are deliberately different so that an unfilled `<field>` in a committed ADR is obvious and an
-unsubstituted `{{TOKEN}}` in a scaffolded repository is a script bug rather than an authoring gap.
+unsubstituted `{{PLACEHOLDER}}` in a scaffolded repository is a script bug rather than an authoring gap.
 
 Substitution runs over **every file in `template/`, including its pathnames**. A directory named
 `{{PREFIX}}-context` becomes `cll-context`.
 
 ## The set
 
-| Token | Source | Required | Example | Appears in |
+| Placeholder | Source | Required | Example | Appears in |
 |---|---|---|---|---|
 | `{{PROJECT}}` | `--project` | yes | `City Library Lending` | `CLAUDE.md`, `MANIFEST.yaml`, `CURATION.md`, `GLOSSARY.md`, the layer READMEs, `metrics/README.md`, the hooks, `<prefix>-context/SKILL.md`, `docs/adr/0000`, the bootstrap curation record |
 | `{{PROJECT_SLUG}}` | `--slug`, else derived from `--project` | yes | `city-library-lending` | `MANIFEST.yaml` (`project.id`, `project.slug`) |
@@ -36,8 +36,8 @@ Substitution runs over **every file in `template/`, including its pathnames**. A
 1. **Adding a placeholder is a three-step change:** add it to `PLACEHOLDERS` in `bone-init.sh`, add a
    row here, and use it in `template/`. The lint fails if any of the three is missing, which is the
    point.
-2. **Token names are `[A-Z0-9_]+`.** The lint scans for `{{[A-Za-z0-9_]+}}` so a lowercase or
-   hyphenated token is caught rather than silently ignored.
+2. **Placeholder names are `[A-Z0-9_]+`.** The lint scans for `{{[A-Za-z0-9_]+}}` so a lowercase or
+   hyphenated placeholder is caught rather than silently ignored.
 3. **A placeholder MUST NOT carry a fact that will change.** These are identity values, fixed at
    instantiation. Anything mutable belongs in `MANIFEST.yaml` or a state record, where it can be
    dated and re-verified.
