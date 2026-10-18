@@ -360,7 +360,7 @@ matches "$PREFIX" '^[a-z][a-z0-9]{1,7}$' ||
 
 [ -n "$PROJECT_SLUG" ] || PROJECT_SLUG=$(slugify "$PROJECT")
 [ -n "$PROJECT_SLUG" ] ||
-	die "could not derive a slug from --project \"$PROJECT\"; pass --slug explicitly"
+	die "could not derive a slug from --project \"$PROJECT\"; give --slug yourself"
 matches "$PROJECT_SLUG" '^[a-z0-9]+(-[a-z0-9]+)*$' ||
 	die "--slug must be kebab-case, lowercase alphanumeric (got: $PROJECT_SLUG)"
 

@@ -15,9 +15,11 @@ grep -q '^bone_version:' "$P/MANIFEST.yaml" 2>/dev/null || exit 0
 [ -r "$H/decay-check.sh" ] || exit 0
 T=$(mktemp -d "${TMPDIR:-/tmp}/osteon-decay.XXXXXX") || exit 0
 trap 'rm -rf "$T"' EXIT
-N=$(basename "$P" | sed 's/[\&|]/\\&/g')
+# The project name is the directory's basename. It is written to a sed script file first, with
+# sed's own special characters escaped, so no command line is assembled from it at run time.
+basename "$P" | sed 's/[\&|]/\\&/g; s|^|s/{{PROJECT}}/|; s|$|/g|' > "$T/name.sed" || exit 0
 for f in decay-check.sh cdi.sh bone-lib.sh; do
-  sed "s|{{PROJECT}}|$N|g" "$H/$f" > "$T/$f" || exit 0
+  sed -f "$T/name.sed" "$H/$f" > "$T/$f" || exit 0
 done
 sh "$T/decay-check.sh" 2>/dev/null
 exit 0
