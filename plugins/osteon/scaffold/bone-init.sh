@@ -10,8 +10,8 @@ set -eu
 BONE_VERSION="0.1.0"      # the bone-spec version this template scaffolds to
 SCHEMA_VERSION="1.0"      # the MANIFEST.yaml schema version this template emits
 
-# The closed substitution set. A {{TOKEN}} in template/ that is not listed here is a bug, and so is
-# a token listed here that PLACEHOLDERS.md does not document. lint_templates() enforces both.
+# The closed substitution set. A {{PLACEHOLDER}} in template/ that is not listed here is a bug, and
+# so is a placeholder listed here that PLACEHOLDERS.md does not document. lint_templates() enforces both.
 PLACEHOLDERS="PROJECT PROJECT_SLUG PREFIX BONE_REPO GROUP_URL OWNER DATE BONE_VERSION SCHEMA_VERSION"
 
 SELF_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
@@ -93,7 +93,7 @@ PLACEHOLDERS
 
 EXAMPLE
   ./bone-init.sh --project "City Library Lending" --prefix cll \
-                 --dir ~/city-library-lending-bone \
+                 --dir ./city-library-lending-bone \
                  --group-url https://git.example.org/city-library \
                  --owner owner
 
@@ -119,8 +119,8 @@ matches() {
 	printf '%s' "$1" | grep -qE "$2"
 }
 
-# Every {{TOKEN}} occurring in template/, in file contents and in pathnames.
-template_tokens() {
+# Every {{PLACEHOLDER}} occurring in template/, in file contents and in file and directory names.
+template_placeholders() {
 	{
 		grep -rhoE '\{\{[A-Za-z0-9_]+\}\}' "$TEMPLATE_DIR" 2>/dev/null || true
 		find "$TEMPLATE_DIR" -mindepth 1 -print |
@@ -262,7 +262,7 @@ lint_templates() {
 	[ -d "$TEMPLATE_DIR" ] || die "template directory not found: $TEMPLATE_DIR"
 	[ -f "$PLACEHOLDER_DOC" ] || die "PLACEHOLDERS.md not found: $PLACEHOLDER_DOC"
 
-	found=$(template_tokens)
+	found=$(template_placeholders)
 
 	for t in $found; do
 		case " $PLACEHOLDERS " in

@@ -1,7 +1,16 @@
 {
   "name": "osteon",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "OSTEON framework skills: give every project one governed knowledge repository (a BONE) with decision records, seam contracts, decay detection and propose-then-ask curation, plus the ossification method for planning and landing multi-repository work.",
-  "author": { "name": "OSTEON" },
-  "keywords": ["knowledge-base", "adr", "contracts", "curation", "methodology", "planning"]
+  "author": {
+    "name": "OSTEON"
+  },
+  "keywords": [
+    "knowledge-base",
+    "adr",
+    "contracts",
+    "curation",
+    "methodology",
+    "planning"
+  ]
 }
