@@ -121,10 +121,17 @@ each rule is stated in full where it applies, and the pointer records where it c
   personal tier; neither is needed for a single project. `osteon-research-unit` maintains the
   OSTEON research papers and depends on private data.
 
-## Citing and license
+## Paper and citation
 
-If you use OSTEON or build on its ideas, cite it as `CITATION.cff` states. GitHub shows this as
-"Cite this repository".
+OSTEON is described in the preprint "Superintelligent Software Engineering: Governance That
+Scales with Capability", [arXiv:2610.31306](https://arxiv.org/abs/2610.31306) [cs.SE], 2026,
+DOI [10.48550/arXiv.2610.31306](https://doi.org/10.48550/arXiv.2610.31306).
+
+If you use OSTEON or build on its ideas, cite the paper. To cite this software release, use its
+Zenodo DOI, [10.5281/zenodo.23436020](https://doi.org/10.5281/zenodo.23436020). `CITATION.cff`
+carries both, with the paper as the preferred citation; GitHub shows it as "Cite this repository".
+
+## License
 
 The content is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), so any
 use or adaptation must credit the author. The scripts are licensed under MIT. See `LICENSE`.
