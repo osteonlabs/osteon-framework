@@ -1,6 +1,6 @@
 ---
 name: bone-git
-description: Branch, commit and change-request discipline for any BONE-governed project, parameterised by MANIFEST.yaml instead of hardcoded to one forge or tracker. Use when asked to "commit", "push", "open an MR", "open a PR", "start a branch", "land this", when a push is rejected or a branch has drifted, or when dirty work spans several concerns. NOT for judging a diff's content (bone-review), forge auth and connection mechanics (the project's T1 integration skill), or knowledge-base edits (bone-curator). Load the project's T1 context skill and MANIFEST.yaml first.
+description: Branch, commit and change-request discipline for any BONE-governed project, parameterised by MANIFEST.yaml instead of hardcoded to one forge or tracker. Use when asked to "commit", "push", "open an MR", "open a PR", "start a branch", "land this", when a push is rejected or a branch has drifted, when dirty work spans several concerns, or a new machine must "test the flow". NOT for judging a diff's content (bone-review), forge auth and connection mechanics (the project's T1 integration skill), or knowledge-base edits (bone-curator). Load the project's T1 context skill and MANIFEST.yaml first.
 ---
 
 # BONE Git Workflow
@@ -29,23 +29,13 @@ Declared once in the manifest, read at use time. This skill MUST NOT restate the
 | `change_request.template` | path to the single-source body template | STOP and ask |
 | `gates[]` (`id`, `scope`, `enforcement`) | which gates apply to which change classes | no gates declared is itself a finding; report it |
 | `repos[]` (`alias`, `url`, `default_branch`, `local_path`, `role`) | which repository, its canonical remote, its protected branch, and where the working copy is | STOP and ask |
+| `owners[].id` · `roles[].route_via` · `paths.ledger` · `paths.state` | who runs an owner-side step, the landing route, where a proof is written back (`references/pipeline-proof.md`) | as that file says |
 
 **Commit scopes MUST NOT be enumerated in the manifest.** They change weekly and a stale enumeration is worse than none; derive the live list from the integration branch's own subjects.
 
 ## Two key conventions, one skill
 
-A BONE project keys its work units one of two ways; the manifest declares which. **Both are equally supported and this skill MUST NOT prefer one.**
-
-| | `tracker.system_of_record: forge` | `tracker.system_of_record: external` |
-|---|---|---|
-| Work-unit key | the forge's own issue identifier | the external tracker's key |
-| Branch and commit subject | `branching.branch_pattern` / `commits.subject_pattern` rendered with the key | identical templates, external key |
-| Trailer | usually redundant; the forge links natively | REQUIRED; the forge cannot link it |
-| Closing | `close_keyword` in the body closes the issue on merge | the tracker transitions separately; the body MUST NOT claim to close it |
-
-**MUST: exactly one system is the system of record.** Where both a forge issue and an external key exist, the manifest names which one branches and commits are keyed to; the other MAY appear once in the body as a cross-reference. Two keys in one subject is a drift hazard.
-
-**MUST NOT infer the convention from commit history**, which is evidence of past practice including past mistakes. A `tracker.system_of_record` of `UNDECIDED` is an undecided delivery model: stop, say so, route it to `bone-adr`. Working around a missing decision silently makes one.
+Both conventions, `tracker.system_of_record: forge` and `external`, are in `references/key-conventions.md`.
 
 ## Golden rules
 
@@ -99,6 +89,18 @@ No step is optional. Steps 6 and 7 are skipped only for a repo whose `repos[].ur
 Report in this order: branch created; commits made, one subject line per concern; push result with the verified remote tip; change-request identifier and URL; readiness verdict.
 
 Readiness vocabulary (closed set): `READY` · `NOT-READY (<blocking reason>)` · `HELD (<what it waits on>)`. Never report `READY` while any gate verdict is `FAIL` or `NEEDS-INFO`.
+
+## References
+
+- `references/key-conventions.md` - the forge and external key conventions side by side, and the rule
+  that exactly one system is the system of record. **Read it before keying a first branch in a
+  project.** A convention inferred from commit history copies past mistakes, and an `UNDECIDED` one
+  worked around silently becomes a decision.
+- `references/pipeline-proof.md` - how to prove a machine's landing route and every guard it
+  enforces locally: stages read from the manifest and the route decision, controls in every
+  working-copy layout, probes that move no branch, owner-side steps. **Read it before calling a
+  machine ready to push.** A guard proven only in the main checkout is unproven in a linked worktree,
+  where a relative hook path to an untracked directory silently runs nothing.
 
 ## Boundary
 
