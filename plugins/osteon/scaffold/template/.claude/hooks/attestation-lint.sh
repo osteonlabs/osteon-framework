@@ -165,9 +165,19 @@ GENESIS=$(git -C "$ROOT" rev-list --max-parents=0 HEAD 2>/dev/null | tail -n 1)
 git -C "$ROOT" log --no-merges --name-status --date=short \
     --pretty=format:'@@%H|%an|%ad|%s' $RANGE > "$TMP/log.txt" 2>/dev/null || :
 
+P_LEDGER=$(printf '%s\n' "$P_LEDGER" | tr '\\' '/')
+P_STATE=$(printf '%s\n' "$P_STATE" | tr '\\' '/')
+P_CONTRACTS=$(printf '%s\n' "$P_CONTRACTS" | tr '\\' '/')
+P_DOMAIN=$(printf '%s\n' "$P_DOMAIN" | tr '\\' '/')
+P_SKILLS=$(printf '%s\n' "$P_SKILLS" | tr '\\' '/')
+P_CONST=$(printf '%s\n' "$P_CONST" | tr '\\' '/')
+P_CURATION=$(printf '%s\n' "$P_CURATION" | tr '\\' '/')
+OUT_FINDINGS=$(printf '%s\n' "$TMP/findings.tsv" | tr '\\' '/')
+OUT_COUNTS=$(printf '%s\n' "$TMP/counts.txt" | tr '\\' '/')
+
 awk -F'|' -v ledger="$P_LEDGER" -v state="$P_STATE" -v contracts="$P_CONTRACTS" \
           -v domain="$P_DOMAIN" -v skills="$P_SKILLS" -v const="$P_CONST" \
-          -v curation="$P_CURATION" -v out="$TMP/findings.tsv" -v tot="$TMP/counts.txt" \
+          -v curation="$P_CURATION" -v out="$OUT_FINDINGS" -v tot="$OUT_COUNTS" \
           -v genesis="$GENESIS" '
     function governed(p) {
         return (index(p, ledger) == 1 || index(p, state) == 1 || index(p, contracts) == 1 \

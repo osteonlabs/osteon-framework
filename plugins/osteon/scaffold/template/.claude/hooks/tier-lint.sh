@@ -108,7 +108,10 @@ if [ -n "$T0_ROOT" ] && [ -d "$T0_ROOT" ]; then
 		[ -d "$d" ] || continue
 		case $(basename "${d%/}") in
 		bone-*) find -L "${d%/}" -name '*.md' -type f 2>/dev/null |
-			while IFS= read -r f; do printf 'T0\t%s\n' "$f" >> "$INV"; done ;;
+			while IFS= read -r f; do
+				_f_clean=$(printf '%s\n' "$f" | tr '\\' '/')
+				printf 'T0\t%s\n' "$_f_clean" >> "$INV"
+			done ;;
 		esac
 	done
 elif [ "$QUIET" = 0 ]; then
@@ -118,7 +121,10 @@ fi
 # T1: this project's capability library.
 if [ -d "$ROOT/.claude/skills" ]; then
 	find "$ROOT/.claude/skills" -name '*.md' -type f 2>/dev/null |
-		while IFS= read -r f; do printf 'T1\t%s\n' "$f" >> "$INV"; done
+		while IFS= read -r f; do
+			_f_clean=$(printf '%s\n' "$f" | tr '\\' '/')
+			printf 'T1\t%s\n' "$_f_clean" >> "$INV"
+		done
 fi
 
 # T2: each repo's own constitution, resolved through the manifest.
@@ -168,7 +174,8 @@ SH="$TMP/shingles"
 : > "$SH"
 while IFS='	' read -r tier path; do
 	[ -f "$path" ] || continue
-	awk -v tier="$tier" -v path="$path" -v n="$SHINGLE" -v minlen="$MINLEN" '
+	path_clean=$(printf '%s\n' "$path" | tr '\\' '/')
+	awk -v tier="$tier" -v path="$path_clean" -v n="$SHINGLE" -v minlen="$MINLEN" '
 		function norm(s) {
 			gsub(/^[[:space:]]+|[[:space:]]+$/, "", s)
 			gsub(/[[:space:]][[:space:]]+/, " ", s)
