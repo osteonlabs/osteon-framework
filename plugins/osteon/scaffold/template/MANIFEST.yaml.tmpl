@@ -375,6 +375,13 @@ curation:
   quarantine_on_breaking: true               # OPTIONAL. boolean. Policy Tier 3 quarantine without blocking session.
   escalation_stream: metrics/curation-escalations.jsonl # OPTIONAL. stream for async escalation events.
 
+# --- Telemetry & Token Metering (AaaS) --------------------------------------
+telemetry:
+  enabled: true                              # OPTIONAL. boolean. Enable AaaS session & token metering.
+  stream: ".osteon/telemetry/events.jsonl"   # OPTIONAL. path to standardized JSONL event stream.
+  sample_rate: 1.0                           # OPTIONAL. float (0.0 to 1.0).
+  export_format: jsonl                       # OPTIONAL. jsonl | otlp.
+
 # --- Metrics ----------------------------------------------------------------
 #   dir     REQUIRED.
 #   streams REQUIRED (may be []). items:

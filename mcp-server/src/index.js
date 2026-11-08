@@ -5,6 +5,7 @@ import { loadManifest, findManifestPath } from './manifest.js';
 import { getCdiMetrics } from './cdi.js';
 import { queryAuthoritativeFacts, maskPiiAndSecrets } from './facts.js';
 import { listContracts, verifyContract } from './contracts.js';
+import { recordTelemetryEvent, getTelemetrySummary } from './telemetry.js';
 import { PROMPTS } from './prompts.js';
 
 const PROTOCOL_VERSION = '2024-11-05';
@@ -224,14 +225,69 @@ export class OsteonMcpServer {
           },
           required: ['file_path', 'old_token', 'new_token', 'justification']
         }
+      },
+      {
+        name: 'osteon_get_telemetry',
+        description: 'Returns aggregated telemetry, token consumption metering, and latency metrics for Agent-as-a-Service (AaaS) observability.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            tenant_id: {
+              type: 'string',
+              description: 'Optional tenant filter to aggregate metrics for a specific tenant'
+            },
+            project_path: {
+              type: 'string',
+              description: 'Target BONE project root directory'
+            }
+          }
+        }
       }
     ];
   }
 
   async handleToolCall(name, args) {
     const projectDir = args.project_path || this.defaultProjectDir;
+    const startTime = performance.now();
+    let result;
 
+    try {
+      result = await this.executeTool(name, args, projectDir);
+    } catch (err) {
+      result = {
+        isError: true,
+        content: [{ type: 'text', text: `Error: ${err.message}` }]
+      };
+    }
+
+    const latencyMs = Math.round(performance.now() - startTime);
+    const textOut = result.content?.[0]?.text || '';
+    const tokensEstimated = Math.ceil(textOut.length / 4);
+
+    recordTelemetryEvent(projectDir, {
+      tool: name,
+      tenant_id: args.tenant_id || 'tenant-default',
+      latency_ms: latencyMs,
+      tokens_estimated: tokensEstimated,
+      status: result.isError ? 'error' : 'success'
+    });
+
+    return result;
+  }
+
+  async executeTool(name, args, projectDir) {
     switch (name) {
+      case 'osteon_get_telemetry': {
+        const summary = getTelemetrySummary(projectDir, args.tenant_id || null);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(summary, null, 2)
+            }
+          ]
+        };
+      }
       case 'osteon_get_cdi': {
         const metrics = await getCdiMetrics(projectDir);
         return {

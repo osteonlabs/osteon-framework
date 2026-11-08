@@ -6,4 +6,5 @@ dev/
 .agents/
 reports/
 tests/
+.osteon/
 *.tmp
