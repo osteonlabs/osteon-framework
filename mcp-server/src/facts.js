@@ -70,3 +70,16 @@ export function queryAuthoritativeFacts(projectDir = process.cwd(), query = '', 
 
   return results;
 }
+
+/**
+ * Masks potential API keys, secrets, and credentials from extracted fact texts.
+ * @param {string} text
+ * @returns {string}
+ */
+export function maskPiiAndSecrets(text) {
+  if (!text) return text;
+  return text
+    .replace(/(bearer\s+)[a-zA-Z0-9_\-\.]{15,}/gi, '$1[MASKED_TOKEN]')
+    .replace(/(sk_[a-zA-Z0-9_\-]{20,})/gi, '[MASKED_KEY]')
+    .replace(/(ghp_[a-zA-Z0-9]{20,})/gi, '[MASKED_GITHUB_TOKEN]');
+}

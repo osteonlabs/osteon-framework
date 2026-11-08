@@ -76,6 +76,15 @@ hooks:
   dir: ".claude/hooks"                               # REQUIRED.
   session_start: ".claude/hooks/decay-check.sh"      # REQUIRED (B-153). MUST exist (B-177).
 
+# --- Multi-Tenant Context Isolation (MT-BONE) --------------------------------
+tenant:
+  id: "tenant-default"                      # REQUIRED. Tenant identifier (kebab-case or UUID).
+  organization: "{{PROJECT}}"               # REQUIRED. Customer or organizational unit name.
+  isolation_tier: strict                    # REQUIRED. strict | shared | dedicated
+  encryption_scope: tenant-kms              # OPTIONAL. tenant-kms | platform | none
+  egress_policy: no-cross-tenant            # REQUIRED. no-cross-tenant | audit-logged
+  pii_masking: true                         # REQUIRED. boolean. Mask secrets and regulated data before LLM injection.
+
 # --- Knowledge tiers --------------------------------------------------------
 tiers:
   T0:
@@ -89,11 +98,14 @@ tiers:
     owns: "the methodology itself; anything true for more than one project"   # REQUIRED.
   T1:
     location: ".claude/skills/"                      # REQUIRED.
-    owns: "project facts and project procedures"     # REQUIRED.
+    owns: "tenant core security policies, project facts, and organization procedures"     # REQUIRED.
   T2:
     location: "<repo>/CLAUDE.md"                     # REQUIRED. pattern only; the enumeration
                                                      #   is repos[].tier2_context.
     owns: "repo-local conventions only; MUST reference T1, never restate it"  # REQUIRED.
+  T3:
+    location: ".osteon/session/"                     # OPTIONAL. Ephemeral session scratchpad and quarantined drift.
+    owns: "task-scoped working memory; discarded or promoted at curation"
 
 # --- Repositories -----------------------------------------------------------
 #   alias          REQUIRED. MUST BE THE FIRST KEY. Provenance tokens resolve against it.

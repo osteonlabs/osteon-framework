@@ -13,6 +13,10 @@ export function findManifestPath(startDir = process.cwd()) {
     if (fs.existsSync(candidate)) {
       return candidate;
     }
+    const tmplCandidate = path.join(curr, 'MANIFEST.yaml.tmpl');
+    if (fs.existsSync(tmplCandidate)) {
+      return tmplCandidate;
+    }
     const parent = path.dirname(curr);
     if (parent === curr) break;
     curr = parent;
@@ -134,6 +138,14 @@ function normalizeParsedManifest(obj) {
   // Ensure standard defaults
   if (!obj.decay) obj.decay = { ceiling: 0.15, floor: 0.05 };
   if (!obj.curation) obj.curation = { cdi_threshold: 0.10, mode: 'interactive' };
+  if (!obj.tenant) {
+    obj.tenant = {
+      id: 'tenant-default',
+      organization: 'Default Organization',
+      isolation_tier: 'strict',
+      pii_masking: true
+    };
+  }
   return obj;
 }
 

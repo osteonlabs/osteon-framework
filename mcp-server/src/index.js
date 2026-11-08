@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { loadManifest, findManifestPath } from './manifest.js';
 import { getCdiMetrics } from './cdi.js';
-import { queryAuthoritativeFacts } from './facts.js';
+import { queryAuthoritativeFacts, maskPiiAndSecrets } from './facts.js';
 import { listContracts, verifyContract } from './contracts.js';
 import { PROMPTS } from './prompts.js';
 
@@ -245,12 +245,38 @@ export class OsteonMcpServer {
       }
 
       case 'osteon_query_fact': {
-        const facts = queryAuthoritativeFacts(projectDir, args.query, args.tier || null);
+        let manifest = null;
+        try {
+          manifest = loadManifest(projectDir).manifest;
+        } catch (_) {}
+
+        if (args.tenant_id && manifest && manifest.tenant && manifest.tenant.id !== args.tenant_id) {
+          return {
+            isError: true,
+            content: [{
+              type: 'text',
+              text: `Access denied: Tenant '${args.tenant_id}' does not match repository tenant '${manifest.tenant.id}'`
+            }]
+          };
+        }
+
+        let facts = queryAuthoritativeFacts(projectDir, args.query, args.tier || null);
+        if (manifest?.tenant?.pii_masking) {
+          facts = facts.map(f => ({
+            ...f,
+            text: maskPiiAndSecrets(f.text)
+          }));
+        }
+
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify({ count: facts.length, facts }, null, 2)
+              text: JSON.stringify({
+                tenant_id: manifest?.tenant?.id || 'tenant-default',
+                count: facts.length,
+                facts
+              }, null, 2)
             }
           ]
         };

@@ -252,6 +252,24 @@ bone_manifest_scalar() {
     return 0
 }
 
+# bone_tenant_id <root> -> tenant.id from MANIFEST.yaml, or "tenant-default"
+bone_tenant_id() {
+    _bti_man=$(bone_manifest_path "$1")
+    [ -n "$_bti_man" ] || { printf 'tenant-default\n'; return 0; }
+    _bti_id=$(awk '
+        /^tenant:/ { in_t=1; next }
+        in_t && /^[a-zA-Z0-9_]/ { in_t=0 }
+        in_t && /^[ \t]*id:[ \t]*/ {
+            sub(/^[ \t]*id:[ \t]*/, "")
+            sub(/[ \t]*#.*$/, ""); sub(/[ \t]+$/, "")
+            gsub(/^["'"'"']|["'"'"']$/, "")
+            print $0
+            exit
+        }
+    ' "$_bti_man" 2>/dev/null)
+    printf '%s\n' "${_bti_id:-tenant-default}"
+}
+
 # ---------------------------------------------------------------------------
 # 4. Repo aliases.
 #
