@@ -42,8 +42,8 @@ renames a field is unqueryable, and an unqueryable log costs every metric the lo
         tier_resolution: T0 | T1 | T2   # REQUIRED when a fact is introduced or moved
         outcome: approved | rejected | modified
         note: <the modification text, or the reason for rejection>
-    approval: per-item | user-directed | mechanical | standing-grant | none-yet
-    approver: <a named human>   # null ONLY when approval is none-yet
+    approval: per-item | user-directed | mechanical | standing-grant | policy-auto-advance | policy-verified | quarantine-escalated | none-yet
+    approver: <a named human, or automated policy engine identifier>   # null ONLY when approval is none-yet
     approval_instruction: ""  # REQUIRED when approval is user-directed. The instruction, verbatim.
     attestation:              # REQUIRED when any action touches the never-auto-apply list.
       kind: signed-commit | reviewed-merge

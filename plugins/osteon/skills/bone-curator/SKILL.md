@@ -1,17 +1,19 @@
 ---
 name: bone-curator
-description: Audit a project's BONE knowledge base and evolve it through per-item human approval. Use when a session-start decay warning fires, when a decision locks or a state record is re-verified, when a skill reads stale, redundant, or missing, or when someone says "the skills are out of date", "audit the knowledge base", "is this still true", or "curate". Proposes ADD / UPDATE / REMOVE / MERGE / SPLIT and applies nothing without sign-off. NOT for writing a decision record (bone-adr) or a seam contract (bone-contract). Read MANIFEST.yaml first.
+description: Audit a project's BONE knowledge base and evolve it through interactive approval or autonomous policy-driven resolution. Use when a session-start decay warning fires, when a decision locks or a state record is re-verified, when a skill reads stale, redundant, or missing, or when an autonomous AaaS workflow requests curation. Proposes ADD / UPDATE / REMOVE / MERGE / SPLIT, auto-advances non-functional drift, quarantines breaking drift, and logs all outcomes. NOT for writing a decision record (bone-adr) or a seam contract (bone-contract). Read MANIFEST.yaml first.
 ---
 
 # BONE curator
 
 The maintenance loop of a BONE knowledge repository: it finds where the knowledge base has drifted
-from the code and decisions it describes, then proposes a changeset and asks. Load `CLAUDE.md` and
-`MANIFEST.yaml` first; this skill hardcodes no project paths.
+from the code and decisions it describes, then resolves proposals either through interactive human
+sign-off or the autonomous AaaS policy engine. Load `CLAUDE.md` and `MANIFEST.yaml` first; this
+skill hardcodes no project paths.
 
-> **The curator decides nothing.** It reads, proposes, asks, applies what a human approved, and logs.
-> A change applied without per-item approval is a defect, not a shortcut. A change applied without a
-> curation record did not happen.
+> **The curator decides within declared policy.** In interactive mode, it proposes, asks, applies
+> what a human approved, and logs. In autonomous AaaS mode, it resolves non-functional drift via
+> policy tiers, quarantines breaking drift asynchronously without blocking cloud workers, and logs.
+> A change applied without an audit record did not happen.
 
 ## When to run
 
@@ -21,6 +23,8 @@ from the code and decisions it describes, then proposes a changeset and asks. Lo
 - **Event fired.** A decision locked or amended, a state record re-verified, a contract version
   changed, or a listed repository changed structurally.
 - **Periodic.** `curation.max_interval_days` elapsed, or end of an iteration.
+- **Autonomous AaaS Worker Trigger.** Background cloud agent finished a workflow wave and initiates
+  automated context curation before releasing task output.
 - **Felt wrong.** Two artifacts say the same thing, a task keeps being re-explained, or an agent
   acted confidently on something untrue.
 
@@ -28,8 +32,9 @@ A run is cheap; finding nothing is a valid, logged outcome.
 
 ## The loop
 
-Read, audit, propose, ask, apply approved only, log. **MUST NOT** reorder or skip a step: each exists
-because the one before it produces claims nothing else verifies.
+Read, audit, propose, resolve (interactive or policy engine), apply approved only, log.
+**MUST NOT** reorder or skip a step: each exists because the one before it produces claims
+nothing else verifies.
 
 ## Step 1 - Resolve the manifest, then read the inputs
 
@@ -81,10 +86,14 @@ One table, one row per proposal. The verb set is closed: **ADD / UPDATE / REMOVE
 5. **MUST NOT** propose copying an owned rule into a second artifact. A hard rule stated twice is a
    drift hazard, not reinforcement. Propose a reference instead.
 
-## Step 4 - Ask before acting
+## Step 4 - Resolve the Proposals (Interactive or Autonomous Policy Engine)
 
-This step is the point of the skill. Present the changeset with **AskUserQuestion**, one selectable
-item per proposal, each **approved, rejected, or modified independently**.
+This step resolves the proposed changeset before anything touches the knowledge base.
+The resolution mechanism is governed by `curation.mode` in `MANIFEST.yaml` (`interactive` | `autonomous` | `hybrid`).
+
+### Mode A: Interactive Human Sign-Off (`curation.mode: interactive`, Default)
+When running in an interactive developer session with a human present at the console:
+Present the changeset with **AskUserQuestion**, one selectable item per proposal, each **approved, rejected, or modified independently**.
 
 - **MUST** apply only approved items. A modified item is applied as modified and recorded as
   `modified`, with the modification text kept in the record.
@@ -96,6 +105,37 @@ item per proposal, each **approved, rejected, or modified independently**.
   `approval_instruction`. A general instruction ("tidy up the ledger") **MUST NOT** stand as approval
   for anything on the never-auto-apply list. This valve is a logged path, not an exemption from
   logging.
+
+### Mode B: Autonomous Agent-as-a-Service (AaaS) Policy Engine (`curation.mode: autonomous` or `hybrid`)
+When running in an unattended, 24/7 autonomous cloud agent runtime where no human operator is seated
+at the terminal, the curator **MUST NOT** invoke blocking terminal prompts (`AskUserQuestion`).
+Instead, it executes the **Three-Tier Policy Resolution Engine**:
+
+1. **Tier 1 — Non-Functional Auto-Advance (`approval: policy-auto-advance`):**
+   - **Criteria:** The source diff is strictly non-functional: comment edits, whitespace/formatting
+     re-flow, internal private variable renaming, or documentation polish that does not alter any
+     public seam interface, exported signature, or behavioral invariant.
+   - **Action:** Automatically approve the proposal. Re-anchor the source block to the new commit SHA.
+   - **Record:** Mark item `outcome: approved`, `approval: policy-auto-advance`.
+
+2. **Tier 2 — Contract-Verified Auto-Update (`approval: policy-verified`):**
+   - **Criteria:** Source code implementation has changed, but automated test suites pass, public
+     seam contracts remain 100% compliant, and the fact's core semantics are unchanged.
+   - **Action:** Automatically approve update of the attestation summary and re-anchor the block to
+     the current HEAD.
+   - **Record:** Mark item `outcome: approved`, `approval: policy-verified`.
+
+3. **Tier 3 — Quarantine & Asynchronous Escalation (`approval: quarantine-escalated`):**
+   - **Criteria:** A breaking change is detected: a registered seam contract is breached, an accepted
+     ADR is contradicted, or a governed path was deleted without a replacement.
+   - **AaaS Rule:** The curator **MUST NOT** block or halt the autonomous agent session.
+   - **Action:**
+     1. Mark the affected anchor as quarantined (`quarantined: true`) in the knowledge base. Downstream
+        agent sessions are instructed to treat quarantined facts as unreliable/unusable until unblocked.
+     2. Emit an asynchronous escalation event: append to `metrics/curation-escalations.jsonl`, create
+        an async GitHub Issue / Draft Pull Request, or post to `curation.webhook_url` if declared.
+     3. Mark proposal `outcome: quarantined`, `approval: quarantine-escalated`.
+     4. Proceed cleanly with the remainder of the session without human stalling.
 
 ## Step 5 - Apply approved items only
 
@@ -134,8 +174,10 @@ index is derived, never hand-edited: ordering cannot rot when it is generated.
 
 ## Invariants
 
-1. **MUST** propose, then ask, then apply. No silent mutation of the knowledge base, ever.
-2. **MUST** apply only approved items; a modification is recorded as modified.
+1. **MUST** propose, then resolve under declared policy (human sign-off or AaaS policy tiers), then apply.
+   No silent mutation of the knowledge base, ever.
+2. **MUST** apply only approved items; a modification is recorded as modified; quarantined items are
+   isolated without halting the worker.
 3. **MUST NOT** let any artifact contradict the constitution or an accepted decision record.
 4. **MUST** keep one fact at exactly one tier. Lower tiers reference; they never copy.
 5. **MUST** give every normative claim a resolvable provenance token. A claim without provenance is a

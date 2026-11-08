@@ -358,6 +358,10 @@ decay:
 curation:
   cdi_threshold: 0.10                        # REQUIRED. float (B-111.1).
   max_interval_days: 30                      # REQUIRED. integer (B-111.5).
+  mode: interactive                          # OPTIONAL. interactive | autonomous | hybrid (AaaS). Default interactive.
+  auto_advance_non_functional: true          # OPTIONAL. boolean. Policy Tier 1 auto-advance for non-functional drift.
+  quarantine_on_breaking: true               # OPTIONAL. boolean. Policy Tier 3 quarantine without blocking session.
+  escalation_stream: metrics/curation-escalations.jsonl # OPTIONAL. stream for async escalation events.
 
 # --- Metrics ----------------------------------------------------------------
 #   dir     REQUIRED.
