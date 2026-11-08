@@ -164,7 +164,11 @@ bone_hash_file() {
 #    empty watch set reports a healthy zero.
 # ---------------------------------------------------------------------------
 bone_manifest_path() {
-    [ -f "$1/$BONE_MANIFEST" ] && printf '%s\n' "$1/$BONE_MANIFEST"
+    if [ -f "$1" ]; then
+        printf '%s\n' "$1"
+    elif [ -f "$1/$BONE_MANIFEST" ]; then
+        printf '%s\n' "$1/$BONE_MANIFEST"
+    fi
     return 0
 }
 
@@ -184,30 +188,54 @@ bone_manifest_list() {
 
     awk -v key="$_bml_key" '
         function indent(s,   n) { match(s, /^[ \t]*/); return RLENGTH }
-        {
-            line = $0
-            if (line ~ /^[ \t]*#/) next
-            if (!inblock) {
-                if (line ~ "^[ \t]*" key ":[ \t]*(#.*)?$") { inblock = 1; keyind = indent(line) }
-                next
-            }
-            if (line ~ /^[ \t]*$/) next
-            ind = indent(line)
-            if (line ~ /^[ \t]*-[ \t]+/) {
-                if (ind <= keyind) { inblock = 0; next }
-                v = line
-                sub(/^[ \t]*-[ \t]+/, "", v)
-                sub(/[ \t]+#.*$/, "", v)
-                sub(/[ \t]+$/, "", v)
-                if (v != "") print v
-                next
-            }
-            if (ind <= keyind) { inblock = 0 }
+        function clean_val(v) {
+            sub(/[ \t]+#.*$/, "", v); sub(/[ \t]+$/, "", v)
+            sub(/^[ \t]+/, "", v)
+            gsub(/^"|"$/, "", v); gsub(/^'\''|'\''$/, "", v)
+            return v
         }
+        function flush_item() {
+            if (has_item) {
+                val = (item_path != "") ? item_path : item_first
+                if (val != "") print val
+            }
+            has_item = 0; item_path = ""; item_first = ""
+        }
+        /^[ \t]*#/ { next }
+        !inblock {
+            if ($0 ~ "^[ \t]*" key ":[ \t]*(#.*)?$") { inblock = 1; keyind = indent($0) }
+            next
+        }
+        /^[ \t]*$/ { next }
+        {
+            ind = indent($0)
+            if (ind <= keyind && $0 !~ /^[ \t]*-/) { flush_item(); inblock = 0; next }
+            if ($0 ~ /^[ \t]*-[ \t]+/) {
+                flush_item()
+                has_item = 1
+                line = $0
+                sub(/^[ \t]*-[ \t]+/, "", line)
+                if (line ~ /^[a-zA-Z0-9_]+:[ \t]*/) {
+                    k = line; sub(/:.*$/, "", k)
+                    v = line; sub(/^[a-zA-Z0-9_]+:[ \t]*/, "", v)
+                    v = clean_val(v)
+                    if (k == "path") item_path = v
+                    else item_first = v
+                } else {
+                    item_first = clean_val(line)
+                }
+                next
+            }
+            if (has_item && ind > keyind) {
+                line = $0
+                if (line ~ /^[ \t]*path:[ \t]*/) {
+                    v = line; sub(/^[ \t]*path:[ \t]*/, "", v)
+                    item_path = clean_val(v)
+                }
+            }
+        }
+        END { flush_item() }
     ' "$_bml_file" \
-    | sed -e 's/^path:[[:space:]]*//' \
-          -e 's/^"\(.*\)"$/\1/' -e "s/^'\\(.*\\)'\$/\\1/" \
-    | grep -v ':[[:space:]]' \
     | sed -e '/^$/d'
     return 0
 }
@@ -258,30 +286,45 @@ bone_alias_init() {
     BONE_ALIASES=$(awk '
         function indent(s) { match(s, /^[ \t]*/); return RLENGTH }
         function val(s) {
-            sub(/^[ \t]*[a-z_]*:[ \t]*/, "", s)
+            sub(/^[ \t]*[a-zA-Z0-9_]*:[ \t]*/, "", s)
             sub(/[ \t]*#.*$/, "", s); sub(/[ \t]+$/, "", s)
             gsub(/^"|"$/, "", s); gsub(/^'"'"'|'"'"'$/, "", s)
             if (s == "null" || s == "~" || s == "TODO") s = ""
             return s
+        }
+        function flush_repo() {
+            if (has_repo && a != "") {
+                print a "\t" p "\t" c
+            }
+            has_repo = 0; a = ""; p = ""; c = ""
         }
         /^[ \t]*#/ { next }
         !inrepos { if ($0 ~ /^[ \t]*repos:[ \t]*(#.*)?$/) { inrepos = 1; rind = indent($0) } next }
         {
             if ($0 ~ /^[ \t]*$/) next
             ind = indent($0)
-            if (ind <= rind && $0 !~ /^[ \t]*-/) { inrepos = 0; next }
-            if ($0 ~ /^[ \t]*-[ \t]+alias:[ \t]*/) {
-                if (a != "") print a "\t" p "\t" c
-                a = $0; sub(/^[ \t]*-[ \t]+alias:[ \t]*/, "", a)
-                sub(/[ \t]*#.*$/, "", a); sub(/[ \t]+$/, "", a)
-                gsub(/^"|"$/, "", a)
-                p = ""; c = ""
+            if (ind <= rind && $0 !~ /^[ \t]*-/) { flush_repo(); inrepos = 0; next }
+            if ($0 ~ /^[ \t]*-[ \t]+/) {
+                flush_repo()
+                has_repo = 1
+                line = $0
+                sub(/^[ \t]*-[ \t]+/, "", line)
+                if (line ~ /^[ \t]*alias:[ \t]*/) {
+                    a = val(line)
+                } else if (line ~ /^[ \t]*local_path:[ \t]*/) {
+                    p = val(line)
+                } else if (line ~ /^[ \t]*pinned_at:[ \t]*/) {
+                    c = val(line)
+                }
                 next
             }
-            if ($0 ~ /^[ \t]*local_path:[ \t]*/) { p = val($0) }
-            if ($0 ~ /^[ \t]*pinned_at:[ \t]*/)  { c = val($0) }
+            if (has_repo && ind > rind) {
+                if ($0 ~ /^[ \t]*alias:[ \t]*/)      { a = val($0) }
+                if ($0 ~ /^[ \t]*local_path:[ \t]*/) { p = val($0) }
+                if ($0 ~ /^[ \t]*pinned_at:[ \t]*/)  { c = val($0) }
+            }
         }
-        END { if (a != "") print a "\t" p "\t" c }
+        END { flush_repo() }
     ' "$_bai_man")
     export BONE_ALIASES
 }

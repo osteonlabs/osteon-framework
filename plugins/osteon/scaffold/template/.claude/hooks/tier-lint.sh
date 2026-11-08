@@ -124,17 +124,37 @@ fi
 # T2: each repo's own constitution, resolved through the manifest.
 if [ -f "$MANIFEST" ]; then
 	bone_alias_init "$MANIFEST" 2>/dev/null || true
-	for a in $(bone_manifest_list "$MANIFEST" repos 2>/dev/null || true); do :; done
-	# bone_manifest_list does not expose repos[] pairs, so read the block directly.
+	# Read T2 context files from repos[] block regardless of key order
 	awk '
-		/^repos:/ { inr = 1; next }
-		inr && /^[a-z_]+:/ { inr = 0 }
-		inr && /^[ \t]*-[ \t]+alias:/ { al = $0; sub(/^[ \t]*-[ \t]+alias:[[:space:]]*/, "", al); sub(/[[:space:]]*#.*$/, "", al); t2 = ""; lp = "" }
-		inr && /^[ \t]*tier2_context:/ { t2 = $0; sub(/^[ \t]*tier2_context:[[:space:]]*/, "", t2); sub(/[[:space:]]*#.*$/, "", t2); gsub(/"/, "", t2) }
-		inr && /^[ \t]*local_path:/ {
-			lp = $0; sub(/^[ \t]*local_path:[[:space:]]*/, "", lp); sub(/[[:space:]]*#.*$/, "", lp); gsub(/"/, "", lp)
-			if (t2 != "" && t2 != "null" && lp != "" && lp != "null") printf "%s/%s\n", lp, t2
+		function clean(s) {
+			sub(/^[ \t]*[a-zA-Z0-9_]*:[ \t]*/, "", s)
+			sub(/[ \t]*#.*$/, "", s); sub(/[ \t]+$/, "", s)
+			gsub(/^"|"$/, "", s); gsub(/^'"'"'|'"'"'$/, "", s)
+			if (s == "null" || s == "~" || s == "TODO") s = ""
+			return s
 		}
+		function flush_repo() {
+			if (has_repo && t2 != "" && lp != "") {
+				printf "%s/%s\n", lp, t2
+			}
+			has_repo = 0; t2 = ""; lp = ""
+		}
+		/^repos:/ { inr = 1; next }
+		inr && /^[a-z_]+:/ { flush_repo(); inr = 0 }
+		inr && /^[ \t]*-[ \t]+/ {
+			flush_repo()
+			has_repo = 1
+			line = $0
+			sub(/^[ \t]*-[ \t]+/, "", line)
+			if (line ~ /^[ \t]*tier2_context:[ \t]*/) { t2 = clean(line) }
+			else if (line ~ /^[ \t]*local_path:[ \t]*/) { lp = clean(line) }
+			next
+		}
+		inr && has_repo {
+			if ($0 ~ /^[ \t]*tier2_context:[ \t]*/) { t2 = clean($0) }
+			else if ($0 ~ /^[ \t]*local_path:[ \t]*/) { lp = clean($0) }
+		}
+		END { flush_repo() }
 	' "$MANIFEST" 2>/dev/null | while IFS= read -r f; do
 		[ -f "$f" ] && printf 'T2\t%s\n' "$f" >> "$INV"
 	done
