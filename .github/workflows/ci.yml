@@ -25,8 +25,13 @@ jobs:
       - name: Run automated test harness
         shell: bash
         run: |
-          chmod +x tests/*.sh
-          ./tests/run_tests.sh
+          if [ -f "./tests/run_tests.sh" ]; then
+            chmod +x tests/*.sh 2>/dev/null || true
+            ./tests/run_tests.sh
+          else
+            echo "Running core upstream selftest..."
+            (cd plugins/osteon/scaffold/template/.claude/hooks && ./selftest.sh)
+          fi
 
   lint-and-validate:
     name: Lint & Structure Validation
