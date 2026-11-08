@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop, 'fix/*', 'feat/*', 'test/*', 'ci/*', 'chore/*' ]
+  pull_request:
+    branches: [ main, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-matrix:
+    name: Test Suite (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run automated test harness
+        shell: bash
+        run: |
+          chmod +x tests/*.sh
+          ./tests/run_tests.sh
+
+  lint-and-validate:
+    name: Lint & Structure Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Validate SKILL.md Frontmatter & Structure
+        run: |
+          python - <<'PY'
+          import os, glob, sys, yaml
+          bad = 0
+          skill_files = glob.glob("plugins/osteon/skills/*/SKILL.md")
+          print(f"Checking {len(skill_files)} skill files...")
+          for f in sorted(skill_files):
+              try:
+                  content = open(f, encoding="utf-8").read()
+                  if not content.startswith("---\n"):
+                      print(f"FAIL: No frontmatter in {f}")
+                      bad = 1
+                      continue
+                  fm = yaml.safe_load(content.split("---", 2)[1])
+                  if not isinstance(fm, dict):
+                      print(f"FAIL: Frontmatter is not a dict in {f}")
+                      bad = 1
+                      continue
+                  if "name" not in fm or "description" not in fm:
+                      print(f"FAIL: Missing name/description in {f}")
+                      bad = 1
+              except Exception as e:
+                  print(f"FAIL: Error parsing {f}: {e}")
+                  bad = 1
+          if bad:
+              sys.exit(1)
+          print("All SKILL.md frontmatter checks PASSED")
+          PY
+
+      - name: Verify Version Synchronization
+        run: |
+          python - <<'PY'
+          import json, re, sys
+          v1 = json.load(open("plugins/osteon/.claude-plugin/plugin.json"))["version"]
+          v2 = json.load(open(".claude-plugin/marketplace.json"))["plugins"][0]["version"]
+          citation = open("CITATION.cff", encoding="utf-8").read()
+          m = re.search(r"^version:\s*([^\s]+)", citation, re.M)
+          v3 = m.group(1) if m else None
+          print(f"Versions found: plugin.json={v1}, marketplace.json={v2}, CITATION.cff={v3}")
+          if not (v1 == v2 == v3):
+              print("FAIL: Versions disagree across configuration files!")
+              sys.exit(1)
+          print("Version synchronization check PASSED")
+          PY
+
+      - name: Check for Windows Carriage Returns (CRLF) in Shell Scripts
+        run: |
+          if grep -rnl $'\r' plugins/osteon/scaffold/template/.claude/hooks/*.sh tests/*.sh; then
+              echo "FAIL: Unexpected carriage returns found in executable shell scripts"
+              exit 1
+          fi
+          echo "No CRLF found in shell scripts. PASSED"
