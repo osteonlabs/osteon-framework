@@ -50,6 +50,13 @@ run_suite "Linter Safety & Path Escaping" "$SCRIPT_DIR/test_linter_safety.sh"
 # Suite 4: Upstream Core Selftest Harness
 run_suite "Core Scaffold Hooks Selftest" "(cd \"$REPO_ROOT/plugins/osteon/scaffold/template/.claude/hooks\" && ./selftest.sh)"
 
+# Suite 5: Model Context Protocol (MCP) Server
+if command -v node >/dev/null 2>&1; then
+    run_suite "Model Context Protocol (MCP) Server Interoperability" "node \"$SCRIPT_DIR/test_mcp_server.js\""
+else
+    echo "[!] Node.js not found in PATH, skipping MCP suite"
+fi
+
 echo "========================================================================"
 echo "Test Execution Summary"
 echo "========================================================================"

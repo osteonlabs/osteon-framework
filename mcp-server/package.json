@@ -1,0 +1,29 @@
+{
+  "name": "@osteon/mcp-server",
+  "version": "0.1.2",
+  "description": "Official Model Context Protocol (MCP) server for OSTEON Context Governance Framework",
+  "type": "module",
+  "bin": {
+    "osteon-mcp": "./bin/osteon-mcp.js"
+  },
+  "main": "./src/index.js",
+  "scripts": {
+    "start": "node ./bin/osteon-mcp.js",
+    "test": "node ../tests/test_mcp_server.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "osteon",
+    "bone",
+    "context-governance",
+    "agent-as-a-service",
+    "cdi",
+    "ai-agents"
+  ],
+  "author": "Osteon Labs & Metifi Engineering",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
