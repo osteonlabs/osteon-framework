@@ -126,11 +126,11 @@ bone_hash_file() {
     [ -n "${1:-}" ] || { printf 'UNAVAILABLE\n'; return 0; }
     [ -r "$1" ] || { printf 'MISSING\n'; return 0; }
     case "${BONE_HASH_IMPL:-}" in
-        shasum)    shasum -a 256 "$1" 2>/dev/null | awk '{print $1}' ;;
-        sha256sum) sha256sum "$1" 2>/dev/null | awk '{print $1}' ;;
-        openssl)   openssl dgst -sha256 "$1" 2>/dev/null | awk '{print $NF}' ;;
+        shasum)    _b_out=$(shasum -a 256 "$1" 2>/dev/null) && printf '%s\n' "${_b_out%% *}" ;;
+        sha256sum) _b_out=$(sha256sum "$1" 2>/dev/null) && printf '%s\n' "${_b_out%% *}" ;;
+        openssl)   _b_out=$(openssl dgst -sha256 "$1" 2>/dev/null) && printf '%s\n' "${_b_out##* }" ;;
         git)       git hash-object "$1" 2>/dev/null ;;
-        cksum)     cksum "$1" 2>/dev/null | awk '{print $1"-"$2}' ;;
+        cksum)     _b_out=$(cksum "$1" 2>/dev/null) && printf '%s\n' "${_b_out%% *}" ;;
         *)         printf 'NOHASHER\n' ;;
     esac
 }
@@ -388,11 +388,11 @@ bone_source_kind() {
 # bone_hash_stdin -> sha256 of stdin, same impl selection as bone_hash_file.
 bone_hash_stdin() {
     case "${BONE_HASH_IMPL:-}" in
-        shasum)    shasum -a 256 2>/dev/null | awk '{print $1}' ;;
-        sha256sum) sha256sum 2>/dev/null | awk '{print $1}' ;;
-        openssl)   openssl dgst -sha256 2>/dev/null | awk '{print $NF}' ;;
+        shasum)    _b_in=$(shasum -a 256 2>/dev/null) && printf '%s\n' "${_b_in%% *}" ;;
+        sha256sum) _b_in=$(sha256sum 2>/dev/null) && printf '%s\n' "${_b_in%% *}" ;;
+        openssl)   _b_in=$(openssl dgst -sha256 2>/dev/null) && printf '%s\n' "${_b_in##* }" ;;
         git)       git hash-object --stdin 2>/dev/null ;;
-        cksum)     cksum 2>/dev/null | awk '{print $1"-"$2}' ;;
+        cksum)     _b_in=$(cksum 2>/dev/null) && printf '%s\n' "${_b_in%% *}" ;;
         *)         cat >/dev/null 2>&1; printf 'NOHASHER\n' ;;
     esac
 }

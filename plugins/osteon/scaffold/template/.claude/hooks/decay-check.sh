@@ -105,6 +105,27 @@ CDI_SH="$BONE_SCRIPT_DIR/cdi.sh"
 [ -r "$CDI_SH" ] || exit 0
 [ -r "$BONE_SCRIPT_DIR/bone-lib.sh" ] || exit 0
 
+# Resolve the project root the same way cdi.sh did, for the event log path.
+ROOT="${CLAUDE_PROJECT_DIR:-}"
+if [ -z "$ROOT" ] || [ ! -d "$ROOT" ]; then
+    ROOT=$(dirname "$(dirname "$BONE_SCRIPT_DIR")")
+fi
+
+# Fast-path cache check:
+# If cached clean state matches current git HEAD and working tree is clean, exit immediately (<10ms).
+CACHE_FILE="${ROOT}/.osteon/cache/clean_state.cache"
+if [ -f "$CACHE_FILE" ] && command -v git >/dev/null 2>&1; then
+    _cur_head=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)
+    if [ -n "$_cur_head" ]; then
+        _cached_head=$(head -n 1 "$CACHE_FILE" 2>/dev/null || true)
+        if [ "$_cur_head" = "$_cached_head" ]; then
+            if [ -z "$(git -C "$ROOT" status --porcelain 2>/dev/null)" ]; then
+                exit 0
+            fi
+        fi
+    fi
+fi
+
 # Never let a slow or wedged measurement hold up a session start.
 KV=$(sh "$CDI_SH" --kv 2>/dev/null) || exit 0
 [ -n "$KV" ] || exit 0
@@ -135,10 +156,17 @@ UNRESOLVED=$(get unresolved_tokens)
 : "${CDI:=null}"; : "${CDI_INT:=null}"; : "${CDI_EXT:=null}"; : "${COVERAGE:=null}"
 : "${STATE_KV:=uninitialised}"
 
-# Resolve the project root the same way cdi.sh did, for the event log path.
-ROOT="${CLAUDE_PROJECT_DIR:-}"
-if [ -z "$ROOT" ] || [ ! -d "$ROOT" ]; then
-    ROOT=$(dirname "$(dirname "$BONE_SCRIPT_DIR")")
+# Update clean state cache for subsequent fast-path exits
+if [ "$STATE_KV" = "measured" ] && [ "$CDI" = "0.0000" ] && [ "$SRC_CHANGED" -eq 0 ] && [ "$SRC_UNABS" -eq 0 ] 2>/dev/null; then
+    if command -v git >/dev/null 2>&1; then
+        _cur_head=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)
+        if [ -n "$_cur_head" ]; then
+            mkdir -p "$ROOT/.osteon/cache" 2>/dev/null || true
+            printf '%s\n' "$_cur_head" > "$CACHE_FILE" 2>/dev/null || true
+        fi
+    fi
+else
+    rm -f "$CACHE_FILE" 2>/dev/null || true
 fi
 
 PROJECT="{{PROJECT}}"
