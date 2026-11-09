@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { findManifestPath, loadManifest } from './manifest.js';
+import { computeStrategicHash } from './ast.js';
 
 /**
  * Computes sha256 hex digest of a file.
@@ -141,48 +142,65 @@ function createBlockRecord(blockIndex, text, relativeFilePath, forceCandidate = 
  * @param {string} projectDir
  * @returns {Promise<Record<string, any>>}
  */
-export async function getCdiMetrics(projectDir = process.cwd()) {
+export async function getCdiMetrics(projectDir = process.cwd(), requestedStrategy = null) {
   const manifestPath = findManifestPath(projectDir);
   const baseDir = manifestPath ? path.dirname(manifestPath) : path.resolve(projectDir);
 
-  const cdiHookPaths = [
-    path.join(baseDir, '.claude', 'hooks', 'cdi.sh'),
-    path.join(baseDir, 'plugins', 'osteon', 'scaffold', 'template', '.claude', 'hooks', 'cdi.sh'),
-    path.join(baseDir, 'bin', 'cdi.sh')
-  ];
+  let strategy = requestedStrategy;
+  if (!strategy) {
+    try {
+      const { manifest } = loadManifest(baseDir);
+      if (manifest?.decay?.strategy) {
+        strategy = manifest.decay.strategy;
+      }
+    } catch (_) {}
+  }
+  strategy = strategy || 'cryptographic';
 
-  for (const hookPath of cdiHookPaths) {
-    if (fs.existsSync(hookPath)) {
-      try {
-        const output = execFileSync('sh', [hookPath, '--json'], {
-          cwd: baseDir,
-          encoding: 'utf8',
-          timeout: 10000
-        });
-        const parsed = JSON.parse(output.trim());
-        return {
-          source: 'cdi.sh',
-          ...parsed
-        };
-      } catch (err) {
-        // Fall back to native Node.js calculation
+  // If standard cryptographic strategy and hook is present, can invoke hook
+  if (strategy === 'cryptographic') {
+    const cdiHookPaths = [
+      path.join(baseDir, '.claude', 'hooks', 'cdi.sh'),
+      path.join(baseDir, 'plugins', 'osteon', 'scaffold', 'template', '.claude', 'hooks', 'cdi.sh'),
+      path.join(baseDir, 'bin', 'cdi.sh')
+    ];
+
+    for (const hookPath of cdiHookPaths) {
+      if (fs.existsSync(hookPath)) {
+        try {
+          const output = execFileSync('sh', [hookPath, '--json'], {
+            cwd: baseDir,
+            encoding: 'utf8',
+            timeout: 10000
+          });
+          const parsed = JSON.parse(output.trim());
+          return {
+            source: 'cdi.sh',
+            strategy: 'cryptographic',
+            ...parsed
+          };
+        } catch (err) {
+          // Fall back to native Node.js calculation
+        }
       }
     }
   }
 
-  return computeNativeCdi(baseDir);
+  return computeNativeCdi(baseDir, strategy);
 }
 
 /**
- * Pure Node.js implementation of CDI calculation.
+ * Pure Node.js implementation of CDI calculation with multi-strategy support.
  * @param {string} baseDir
+ * @param {'cryptographic'|'normalized'|'ast-symbol'} strategy
  * @returns {Record<string, any>}
  */
-export function computeNativeCdi(baseDir) {
+export function computeNativeCdi(baseDir, strategy = 'cryptographic') {
   const baselinePath = path.join(baseDir, 'metrics', 'curation-baseline.tsv');
   if (!fs.existsSync(baselinePath)) {
     return {
       state: 'uninitialised',
+      strategy,
       cdi: null,
       coverage: null,
       units_total: 0,
@@ -215,9 +233,10 @@ export function computeNativeCdi(baseDir) {
         changedSources.add(sourceId); // Deleted
       }
     } else {
-      const currentHash = hashFileSha256(sourceFilePath);
+      const fileContent = fs.readFileSync(sourceFilePath, 'utf8');
+      const currentHash = computeStrategicHash(fileContent, sourceFilePath, strategy);
       if (currentHash !== baselineHash) {
-        changedSources.add(sourceId); // Modified
+        changedSources.add(sourceId); // Modified under strategy
       }
     }
   }
@@ -277,6 +296,7 @@ export function computeNativeCdi(baseDir) {
 
   return {
     state,
+    strategy,
     cdi,
     coverage,
     orphan_rate: orphanRate,

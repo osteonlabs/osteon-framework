@@ -358,6 +358,7 @@ knowledge_units:
 decay:
   method: content-hash                       # REQUIRED. content-hash is the ONLY legal value
                                              #   (B-139). mtime is forbidden, with no fallback.
+  strategy: cryptographic                    # OPTIONAL. cryptographic | normalized | ast-symbol. Default cryptographic.
   baseline: metrics/curation-baseline.tsv    # REQUIRED. per-source SHA-256 at the last applied
                                              #   curation. Written by the curation event (B-147),
                                              #   never by the check. Committed.

@@ -135,6 +135,11 @@ export class OsteonMcpServer {
             project_path: {
               type: 'string',
               description: 'Target BONE project root directory (defaults to server root)'
+            },
+            strategy: {
+              type: 'string',
+              enum: ['cryptographic', 'normalized', 'ast-symbol'],
+              description: 'Verification strategy: cryptographic (exact SHA256), normalized (whitespace/comment-stripped), or ast-symbol (AST interface signatures)'
             }
           }
         }
@@ -289,7 +294,7 @@ export class OsteonMcpServer {
         };
       }
       case 'osteon_get_cdi': {
-        const metrics = await getCdiMetrics(projectDir);
+        const metrics = await getCdiMetrics(projectDir, args.strategy);
         return {
           content: [
             {
