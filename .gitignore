@@ -11,3 +11,6 @@ metrics/*.jsonl
 *.tmp
 *.pdf
 preview/
+preview-en/
+*.log
+scratch/
