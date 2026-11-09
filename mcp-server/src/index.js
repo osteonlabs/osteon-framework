@@ -158,6 +158,10 @@ export class OsteonMcpServer {
               type: 'string',
               description: 'Optional tier filter (T0, T1, T2, T3)'
             },
+            limit: {
+              type: 'integer',
+              description: 'Maximum number of ranked results to return (default: 10)'
+            },
             project_path: {
               type: 'string',
               description: 'Target BONE project root directory'
@@ -321,7 +325,7 @@ export class OsteonMcpServer {
           };
         }
 
-        let facts = queryAuthoritativeFacts(projectDir, args.query, args.tier || null);
+        let facts = queryAuthoritativeFacts(projectDir, args.query, args.tier || null, args.limit || 10);
         if (manifest?.tenant?.pii_masking) {
           facts = facts.map(f => ({
             ...f,

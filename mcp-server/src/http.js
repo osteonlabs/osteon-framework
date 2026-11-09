@@ -105,7 +105,7 @@ export function createHttpServer(projectDir = process.cwd(), port = 8080) {
           });
         }
 
-        let facts = queryAuthoritativeFacts(baseDir, body.query || '', body.tier || null);
+        let facts = queryAuthoritativeFacts(baseDir, body.query || '', body.tier || null, body.limit || 10);
         if (manifest?.tenant?.pii_masking) {
           facts = facts.map(f => ({
             ...f,
