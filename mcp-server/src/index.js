@@ -17,6 +17,7 @@ import {
   VALID_ROLES,
   VALID_CHECKPOINTS
 } from './canaliculi.js';
+import { auditChangeRequest } from './osteoclast.js';
 import { PROMPTS } from './prompts.js';
 
 const PROTOCOL_VERSION = '2024-11-05';
@@ -322,6 +323,10 @@ export class OsteonMcpServer {
               type: 'string',
               description: 'Lease ID to release or renew'
             },
+            audit_verdict: {
+              type: 'string',
+              description: 'Osteoclast audit verdict (e.g. APPROVED) required for fusion checkpoint'
+            },
             ttl_ms: {
               type: 'integer',
               description: 'Lease validity duration in milliseconds (default: 300000 / 5 min)'
@@ -384,6 +389,37 @@ export class OsteonMcpServer {
               description: 'Target BONE project root directory'
             }
           }
+        }
+      },
+      {
+        name: 'osteon_osteoclast_audit',
+        description: 'Runs an adversarial Osteoclast pre-merge audit on a Change Request, checking contract co-change compliance, single-owner fact uniqueness, and attestation provenance completeness before fusion.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            changed_files: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'List of repository-relative file paths modified in the change request'
+            },
+            diff_text: {
+              type: 'string',
+              description: 'Optional unified diff text of the change request'
+            },
+            pr_title: {
+              type: 'string',
+              description: 'Title or identifier of the Change Request / PR'
+            },
+            commit_sha: {
+              type: 'string',
+              description: 'Target commit SHA being evaluated'
+            },
+            project_path: {
+              type: 'string',
+              description: 'Target BONE project root directory'
+            }
+          },
+          required: ['changed_files']
         }
       }
     ];
@@ -564,14 +600,15 @@ export class OsteonMcpServer {
       }
 
       case 'osteon_canaliculi_lease': {
-        if (args.action === 'acquire') {
-          const res = acquireLease(projectDir, args.session_id, args.surface, args.checkpoint || 'shared_surface', args.ttl_ms || 300000);
-          return {
-            isError: !res.granted,
-            content: [{ type: 'text', text: JSON.stringify(res, null, 2) }]
-          };
-        } else if (args.action === 'renew') {
-          const res = acquireLease(projectDir, args.session_id, args.surface, args.checkpoint || 'shared_surface', args.ttl_ms || 300000);
+        if (args.action === 'acquire' || args.action === 'renew') {
+          const res = acquireLease(
+            projectDir,
+            args.session_id,
+            args.surface,
+            args.checkpoint || 'shared_surface',
+            args.ttl_ms || 300000,
+            args.audit_verdict || null
+          );
           return {
             isError: !res.granted,
             content: [{ type: 'text', text: JSON.stringify(res, null, 2) }]
@@ -617,6 +654,21 @@ export class OsteonMcpServer {
         const status = getOssificationStatus(projectDir);
         return {
           content: [{ type: 'text', text: JSON.stringify(status, null, 2) }]
+        };
+      }
+
+      case 'osteon_osteoclast_audit': {
+        const audit = auditChangeRequest({
+          projectDir,
+          changedFiles: args.changed_files || [],
+          diffText: args.diff_text || '',
+          prTitle: args.pr_title || 'Change Request',
+          commitSha: args.commit_sha || 'HEAD',
+          customContents: args.custom_contents || []
+        });
+        return {
+          isError: !audit.allowedToMerge,
+          content: [{ type: 'text', text: JSON.stringify(audit, null, 2) }]
         };
       }
 

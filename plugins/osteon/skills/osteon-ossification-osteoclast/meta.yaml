@@ -1,0 +1,32 @@
+---
+name: osteon-ossification-osteoclast
+tier: T0
+category: methodology
+gate: OC1-OC3, the osteoclast refutation gate
+owns: null
+chains_with:
+  - unit: osteon-ossification-plan-implementor
+    relation: "owns the lanes and the subtask execution; this unit refutes the resulting claims before merge"
+  - unit: osteon-framework
+    relation: "holds the Ossification methodology and the biological role register for Osteoclasts"
+  - unit: osteon-governor
+    relation: "governs Antigravity execution rules and pre-merge CI quality gates"
+negative_knowledge:
+  - id: NK-1
+    type: do-not-reintroduce
+    text: "Do not let an osteoblast self-certify its own completion or merge without adversarial refutation."
+    cause: "Roughly one in five DONE claims do not survive refutation by an independent agent instructed to refute rather than verify."
+    src: null
+    expires: null
+  - id: NK-2
+    type: do-not-reintroduce
+    text: "Do not merge code changes that touch contract surfaces without co-changing and bumping the Seam Contract."
+    cause: "Wire moved without contract co-change leads to silent downstream breakages and cross-repository context decay."
+    src: null
+    expires: null
+  - id: NK-3
+    type: do-not-reintroduce
+    text: "Do not accept knowledge assertions lacking provenance citations or attestation tokens."
+    cause: "Unanchored claims pollute the BONE with unverifiable assumptions, eroding the authoritative CDI metric."
+    src: null
+    expires: null

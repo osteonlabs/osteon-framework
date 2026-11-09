@@ -207,9 +207,10 @@ export function retireSession(projectDir, sessionId, reason = 'task_completed') 
  * @param {string} surface
  * @param {string} [checkpoint="shared_surface"]
  * @param {number} [ttlMs=300000] 5 minutes default
+ * @param {string|null} [auditVerdict=null] Required for 'fusion' checkpoint
  * @returns {{ granted: boolean, lease?: any, reason?: string }}
  */
-export function acquireLease(projectDir, sessionId, surface, checkpoint = 'shared_surface', ttlMs = 300000) {
+export function acquireLease(projectDir, sessionId, surface, checkpoint = 'shared_surface', ttlMs = 300000, auditVerdict = null) {
   if (!surface) {
     return { granted: false, reason: 'surface identifier is required' };
   }
@@ -229,6 +230,19 @@ export function acquireLease(projectDir, sessionId, surface, checkpoint = 'share
     return {
       granted: false,
       reason: `Session '${sessionId}' is not registered or active. Register with osteon_canaliculi_register first.`
+    };
+  }
+
+  // Pre-merge Osteoclast verification gate for fusion
+  if (checkpoint === 'fusion' && session.role === 'Osteoblast' && auditVerdict !== 'APPROVED') {
+    appendLedger(dir, {
+      event: 'fusion_lease_denied_unaudited',
+      sessionId,
+      surface
+    });
+    return {
+      granted: false,
+      reason: `Fusion lease blocked: Pre-merge Osteoclast quality audit required with verdict 'APPROVED' before merging into main line.`
     };
   }
 

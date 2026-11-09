@@ -16,6 +16,7 @@ import {
   getSignals,
   getOssificationStatus
 } from './canaliculi.js';
+import { auditChangeRequest } from './osteoclast.js';
 
 /**
  * Creates an HTTP/REST server for headless cloud agent clusters and CI/CD pipelines.
@@ -183,7 +184,14 @@ export function createHttpServer(projectDir = process.cwd(), port = 8080) {
       if (req.method === 'POST' && pathname === '/api/v1/canaliculi/lease') {
         const body = await readBody();
         if (body.action === 'acquire' || body.action === 'renew') {
-          const resObj = acquireLease(baseDir, body.session_id, body.surface, body.checkpoint || 'shared_surface', body.ttl_ms || 300000);
+          const resObj = acquireLease(
+            baseDir,
+            body.session_id,
+            body.surface,
+            body.checkpoint || 'shared_surface',
+            body.ttl_ms || 300000,
+            body.audit_verdict || null
+          );
           return sendJson(resObj.granted ? 200 : 409, resObj);
         } else if (body.action === 'release') {
           const resObj = releaseLease(baseDir, body.session_id, body.lease_id);
@@ -214,7 +222,24 @@ export function createHttpServer(projectDir = process.cwd(), port = 8080) {
         return sendJson(200, status);
       }
 
-      // 8. Generic POST /api/v1/tools/:name
+      // 8. Osteoclast Pre-Merge Adversarial Audit
+      if (req.method === 'POST' && pathname === '/api/v1/osteoclast/audit') {
+        const body = await readBody();
+        if (!body.changed_files || !Array.isArray(body.changed_files)) {
+          return sendJson(400, { error: 'Bad Request', message: 'changed_files array is required' });
+        }
+        const audit = auditChangeRequest({
+          projectDir: baseDir,
+          changedFiles: body.changed_files,
+          diffText: body.diff_text || '',
+          prTitle: body.pr_title || 'Change Request',
+          commitSha: body.commit_sha || 'HEAD',
+          customContents: body.custom_contents || []
+        });
+        return sendJson(audit.allowedToMerge ? 200 : 422, audit);
+      }
+
+      // 9. Generic POST /api/v1/tools/:name
       if (req.method === 'POST' && pathname.startsWith('/api/v1/tools/')) {
         const toolName = pathname.replace('/api/v1/tools/', '');
         const body = await readBody();
