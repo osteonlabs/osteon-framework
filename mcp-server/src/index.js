@@ -6,6 +6,17 @@ import { getCdiMetrics } from './cdi.js';
 import { queryAuthoritativeFacts, maskPiiAndSecrets } from './facts.js';
 import { listContracts, verifyContract } from './contracts.js';
 import { recordTelemetryEvent, getTelemetrySummary } from './telemetry.js';
+import {
+  registerSession,
+  retireSession,
+  acquireLease,
+  releaseLease,
+  sendSignal,
+  getSignals,
+  getOssificationStatus,
+  VALID_ROLES,
+  VALID_CHECKPOINTS
+} from './canaliculi.js';
 import { PROMPTS } from './prompts.js';
 
 const PROTOCOL_VERSION = '2024-11-05';
@@ -251,6 +262,129 @@ export class OsteonMcpServer {
             }
           }
         }
+      },
+      {
+        name: 'osteon_canaliculi_register',
+        description: 'Registers an autonomous agent session into the Canaliculi multi-agent mesh with a designated biological role (Chondrocyte, Osteocyte, Osteoblast, Osteoclast, Periosteum).',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            session_id: {
+              type: 'string',
+              description: 'Unique identifier of the agent session'
+            },
+            role: {
+              type: 'string',
+              enum: ['Chondrocyte', 'Osteocyte', 'Osteoblast', 'Osteoclast', 'Periosteum'],
+              description: 'Assigned cell role in the Ossification methodology'
+            },
+            worktree: {
+              type: 'string',
+              description: 'Optional isolated worktree path for this session'
+            },
+            metadata: {
+              type: 'object',
+              description: 'Optional agent metadata (model, center, cycle date)'
+            },
+            project_path: {
+              type: 'string',
+              description: 'Target BONE project root directory'
+            }
+          },
+          required: ['session_id', 'role']
+        }
+      },
+      {
+        name: 'osteon_canaliculi_lease',
+        description: 'Coordinates distributed signal leases across growth plates, shared interfaces, and merge checkpoints to prevent conflicting concurrent writes.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            action: {
+              type: 'string',
+              enum: ['acquire', 'release', 'renew'],
+              description: 'Lease action to execute'
+            },
+            session_id: {
+              type: 'string',
+              description: 'Session ID requesting or holding the lease'
+            },
+            surface: {
+              type: 'string',
+              description: 'Shared schema, contract, or file surface identifier (required for acquire/renew)'
+            },
+            checkpoint: {
+              type: 'string',
+              enum: ['shared_surface', 'start_cr', 'open_cr', 'fusion', 'curation_item'],
+              description: 'Ossification checkpoint gate'
+            },
+            lease_id: {
+              type: 'string',
+              description: 'Lease ID to release or renew'
+            },
+            ttl_ms: {
+              type: 'integer',
+              description: 'Lease validity duration in milliseconds (default: 300000 / 5 min)'
+            },
+            project_path: {
+              type: 'string',
+              description: 'Target BONE project root directory'
+            }
+          },
+          required: ['action', 'session_id']
+        }
+      },
+      {
+        name: 'osteon_canaliculi_signal',
+        description: 'Transmits or polls real-time inter-agent Canaliculi signals and broadcast notifications between cooperating sessions.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            action: {
+              type: 'string',
+              enum: ['send', 'poll'],
+              description: 'Signal action to perform'
+            },
+            session_id: {
+              type: 'string',
+              description: 'Active session identifier'
+            },
+            to_session_id: {
+              type: 'string',
+              description: 'Recipient session ID or "broadcast" (required for send)'
+            },
+            topic: {
+              type: 'string',
+              description: 'Signal topic / channel (e.g. roll_call, fusion_ready, lease_revoked)'
+            },
+            payload: {
+              type: 'object',
+              description: 'Signal message payload'
+            },
+            limit: {
+              type: 'integer',
+              description: 'Maximum number of signals to fetch on poll'
+            },
+            project_path: {
+              type: 'string',
+              description: 'Target BONE project root directory'
+            }
+          },
+          required: ['action', 'session_id']
+        }
+      },
+      {
+        name: 'osteon_canaliculi_status',
+        description: 'Inspects active ossification cell sessions, locked growth plates, active signal leases, and audit ledger events.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            project_path: {
+              type: 'string',
+              description: 'Target BONE project root directory'
+            }
+          }
+        }
       }
     ];
   }
@@ -416,6 +550,76 @@ export class OsteonMcpServer {
         };
       }
 
+      case 'osteon_canaliculi_register': {
+        const res = registerSession(projectDir, args.session_id, args.role, args.worktree || '', args.metadata || {});
+        if (!res.success) {
+          return {
+            isError: true,
+            content: [{ type: 'text', text: `Registration failed: ${res.error}` }]
+          };
+        }
+        return {
+          content: [{ type: 'text', text: JSON.stringify(res, null, 2) }]
+        };
+      }
+
+      case 'osteon_canaliculi_lease': {
+        if (args.action === 'acquire') {
+          const res = acquireLease(projectDir, args.session_id, args.surface, args.checkpoint || 'shared_surface', args.ttl_ms || 300000);
+          return {
+            isError: !res.granted,
+            content: [{ type: 'text', text: JSON.stringify(res, null, 2) }]
+          };
+        } else if (args.action === 'renew') {
+          const res = acquireLease(projectDir, args.session_id, args.surface, args.checkpoint || 'shared_surface', args.ttl_ms || 300000);
+          return {
+            isError: !res.granted,
+            content: [{ type: 'text', text: JSON.stringify(res, null, 2) }]
+          };
+        } else if (args.action === 'release') {
+          const res = releaseLease(projectDir, args.session_id, args.lease_id);
+          return {
+            isError: !res.released,
+            content: [{ type: 'text', text: JSON.stringify(res, null, 2) }]
+          };
+        }
+        return {
+          isError: true,
+          content: [{ type: 'text', text: `Unknown lease action: ${args.action}` }]
+        };
+      }
+
+      case 'osteon_canaliculi_signal': {
+        if (args.action === 'send') {
+          const res = sendSignal(projectDir, args.session_id, args.to_session_id, args.topic, args.payload || {});
+          if (!res.success) {
+            return {
+              isError: true,
+              content: [{ type: 'text', text: `Signal send failed: ${res.error}` }]
+            };
+          }
+          return {
+            content: [{ type: 'text', text: JSON.stringify(res, null, 2) }]
+          };
+        } else if (args.action === 'poll') {
+          const signals = getSignals(projectDir, args.session_id, args.topic || null, args.limit || 20);
+          return {
+            content: [{ type: 'text', text: JSON.stringify({ session_id: args.session_id, count: signals.length, signals }, null, 2) }]
+          };
+        }
+        return {
+          isError: true,
+          content: [{ type: 'text', text: `Unknown signal action: ${args.action}` }]
+        };
+      }
+
+      case 'osteon_canaliculi_status': {
+        const status = getOssificationStatus(projectDir);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(status, null, 2) }]
+        };
+      }
+
       default:
         return {
           isError: true,
@@ -438,6 +642,12 @@ export class OsteonMcpServer {
         name: 'Curation Baseline',
         mimeType: 'text/tab-separated-values',
         description: 'Sealed cryptographic digest baseline (metrics/curation-baseline.tsv)'
+      },
+      {
+        uri: 'bone://canaliculi/status',
+        name: 'Ossification Canaliculi Status',
+        mimeType: 'application/json',
+        description: 'Real-time multi-agent registry, active cell sessions, and growth plate leases'
       }
     ];
 
@@ -484,6 +694,19 @@ export class OsteonMcpServer {
             uri,
             mimeType: 'text/tab-separated-values',
             text: fs.readFileSync(baselinePath, 'utf8')
+          }
+        ]
+      };
+    }
+
+    if (uri === 'bone://canaliculi/status') {
+      const status = getOssificationStatus(baseDir);
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: 'application/json',
+            text: JSON.stringify(status, null, 2)
           }
         ]
       };

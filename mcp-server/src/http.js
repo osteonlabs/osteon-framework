@@ -7,6 +7,15 @@ import { queryAuthoritativeFacts, maskPiiAndSecrets } from './facts.js';
 import { listContracts, verifyContract } from './contracts.js';
 import { loadManifest, findManifestPath } from './manifest.js';
 import { recordTelemetryEvent, getTelemetrySummary } from './telemetry.js';
+import {
+  registerSession,
+  retireSession,
+  acquireLease,
+  releaseLease,
+  sendSignal,
+  getSignals,
+  getOssificationStatus
+} from './canaliculi.js';
 
 /**
  * Creates an HTTP/REST server for headless cloud agent clusters and CI/CD pipelines.
@@ -164,7 +173,48 @@ export function createHttpServer(projectDir = process.cwd(), port = 8080) {
         });
       }
 
-      // 7. Generic POST /api/v1/tools/:name
+      // 7. Canaliculi Multi-Agent Orchestration Endpoints
+      if (req.method === 'POST' && pathname === '/api/v1/canaliculi/register') {
+        const body = await readBody();
+        const resObj = registerSession(baseDir, body.session_id, body.role, body.worktree || '', body.metadata || {});
+        return sendJson(resObj.success ? 200 : 400, resObj);
+      }
+
+      if (req.method === 'POST' && pathname === '/api/v1/canaliculi/lease') {
+        const body = await readBody();
+        if (body.action === 'acquire' || body.action === 'renew') {
+          const resObj = acquireLease(baseDir, body.session_id, body.surface, body.checkpoint || 'shared_surface', body.ttl_ms || 300000);
+          return sendJson(resObj.granted ? 200 : 409, resObj);
+        } else if (body.action === 'release') {
+          const resObj = releaseLease(baseDir, body.session_id, body.lease_id);
+          return sendJson(resObj.released ? 200 : 400, resObj);
+        }
+        return sendJson(400, { error: 'Bad Request', message: `Invalid action: ${body.action}` });
+      }
+
+      if (req.method === 'POST' && pathname === '/api/v1/canaliculi/signal') {
+        const body = await readBody();
+        const resObj = sendSignal(baseDir, body.session_id, body.to_session_id, body.topic, body.payload || {});
+        return sendJson(resObj.success ? 200 : 400, resObj);
+      }
+
+      if (req.method === 'GET' && pathname === '/api/v1/canaliculi/signals') {
+        const sessionId = parsedUrl.searchParams.get('session_id');
+        const topic = parsedUrl.searchParams.get('topic');
+        const limit = parseInt(parsedUrl.searchParams.get('limit') || '20', 10);
+        if (!sessionId) {
+          return sendJson(400, { error: 'Bad Request', message: 'Missing session_id query parameter' });
+        }
+        const signals = getSignals(baseDir, sessionId, topic || null, limit);
+        return sendJson(200, { session_id: sessionId, count: signals.length, signals });
+      }
+
+      if (req.method === 'GET' && pathname === '/api/v1/canaliculi/status') {
+        const status = getOssificationStatus(baseDir);
+        return sendJson(200, status);
+      }
+
+      // 8. Generic POST /api/v1/tools/:name
       if (req.method === 'POST' && pathname.startsWith('/api/v1/tools/')) {
         const toolName = pathname.replace('/api/v1/tools/', '');
         const body = await readBody();
