@@ -7,4 +7,5 @@ dev/
 reports/
 tests/
 .osteon/
+metrics/*.jsonl
 *.tmp
