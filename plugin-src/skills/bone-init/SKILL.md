@@ -52,6 +52,12 @@ Arguments given to the command: `$ARGUMENTS`
 - CONTEXT: where the script's text says to install the T0 capability library from
   `bone-skills/README.md`, installing this plugin already did that. The T0 skills are this
   plugin's skills, named `/osteon:<name>`.
-- CONTEXT: the new repository's own `.claude/settings.json` wires its decay check to
-  `SessionStart`. This plugin's own SessionStart hook stays silent in any BONE that carries that
-  hook.
+- CONTEXT: the new repository's own `.claude/settings.json` wires its decay check to `SessionStart`.
+  In every BONE that is the top folder of its own git repository, this plugin's own SessionStart
+  hook first fast-forwards the default branch from `origin` when git can do that safely, and prints
+  one line when it pulls or cannot (the plugin README, "The session-start pull", has the details and
+  the off switch). It runs its own decay check only in a BONE that lacks that hook. Claude Code
+  starts the BONE's own SessionStart hooks at the same time as this one, so they can read the copy
+  from before the pull. The decay check appends to `metrics/decay-events.jsonl`, so once that file
+  is committed, a clone with rows of its own in it is not pulled until those rows are out of the
+  way.

@@ -1,7 +1,7 @@
 {
   "name": "osteon",
-  "version": "0.1.2",
-  "description": "OSTEON framework skills: give every project one governed knowledge repository (a BONE) with decision records, seam contracts, decay detection and propose-then-ask curation, plus the ossification method for planning and landing multi-repository work.",
+  "version": "0.1.4",
+  "description": "OSTEON framework skills: give every project one governed knowledge repository (a BONE) with decision records, seam contracts, decay detection and propose-then-ask curation, plus the ossification method for planning and landing multi-repository work. Its SessionStart hook fast-forwards a BONE from its origin.",
   "author": {
     "name": "OSTEON"
   },
